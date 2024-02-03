@@ -1,0 +1,3 @@
+/shared/migrations/000*
+/django.log
+/db.sqlite3
