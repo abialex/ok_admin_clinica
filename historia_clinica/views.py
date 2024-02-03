@@ -22,13 +22,7 @@ class CitasViewSet(ModelViewSet):
         self.initialize_custom_logic()
 
     def initialize_custom_logic(self):
-        2/0
         # Agrega lógica personalizada que deseas realizar al inicializar el ViewSet
         pass
 
 
-
-
-class CitasAll(BaseModelViewSet):
-    queryset = HistoriaClinica.objects.all()
-    serializer_class = HistoriaClinicaSerializer

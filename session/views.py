@@ -14,6 +14,3 @@ from session.models import UserTokenFirebase
 from session.serializers import *
 #from Utils import create_response_succes, create_response_error
 
-
-def hola():
-    asdasd
