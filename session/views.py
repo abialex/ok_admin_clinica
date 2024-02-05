@@ -3,14 +3,112 @@ import json
 from django.contrib.auth import authenticate, login, logout
 from datetime import datetime
 from django.contrib.sessions.models import Session
+from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
+from recursos_humanos.serializers import PersonaSerializer, DoctorAgregateSerializer
 #from core.models import UserRol, UserSede
 #from core.serializers import UserRolSerializer, UserSedeSerializer
 from session.models import UserTokenFirebase
 from session.serializers import *
+from shared.utils.Global import successfull_message, error_message
+from shared.utils.baseModel import BaseModelViewSet
+
+
 #from Utils import create_response_succes, create_response_error
 
+class UserViewSet(BaseModelViewSet):
+    queryset = User.objects.filter(is_active=True)
+    serializer_class = UserFormSerializer
+
+    def list(self, request, *args, **kwargs):
+        # Obtener los datos de la consulta original
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Serializar los datos
+        serializer = UsersSerializer(queryset, many=True)
+
+        # Personalizar la respuesta según tus necesidades
+        custom_data = successfull_message(
+            tipo=type(self).__name__,
+            message="lista de historias clinicas",
+            url=request.get_full_path(),
+            data=serializer.data
+        )
+        return Response(custom_data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = UsersSerializer(instance)
+        custom_response_data = successfull_message(
+            tipo=type(int).__name__,
+            message="historia clinica",
+            url=request.get_full_path(),
+            data=serializer.data
+        )
+        return Response(custom_response_data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        result_serializer = UserFormSerializer(data=request.data)
+
+        if result_serializer.is_valid():
+
+            try:
+                with transaction.atomic():
+                    user_serializer = UserAgregateSerializer(data=request.data)
+                    user_serializer.is_valid(raise_exception=True)
+                    user_serializer.save()
+                    print(user_serializer.data)
+
+                    request.data["usuario_id"] = user_serializer.data["id"]
+                    print(request.data)
+                    doctor_serializer = DoctorAgregateSerializer(data=request.data)
+                    doctor_serializer.is_valid(raise_exception=True)
+                    doctor_serializer.save()
+            except Exception as e:
+                print("Error serializing")
+                print(e)
+
+
+
+            custom_response_data = successfull_message(
+                tipo=type(int).__name__,
+                message="historia clinica creada",
+                url=request.get_full_path(),
+                data=1
+            )
+
+            return Response(custom_response_data, status=status.HTTP_201_CREATED)
+        else:
+            custom_response_data = error_message(
+                tipo=type(int).__name__,
+                message="historia clinica creada",
+                url=request.get_full_path(),
+                fields_errors=result_serializer.errors
+            )
+
+            return Response(custom_response_data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+
+        response = super().update(request, *args, **kwargs)
+
+        custom_response_data = successfull_message(
+            tipo=type(int).__name__,
+            message="historia clinica modificada",
+            url=request.get_full_path(),
+            data=response.data["id"]
+        )
+        return Response(custom_response_data, status=status.HTTP_200_OK)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Aquí puedes realizar acciones personalizadas al inicializar el ViewSet
+        self.initialize_custom_logic()
+
+    def initialize_custom_logic(self):
+        # Agrega lógica personalizada que deseas realizar al inicializar el ViewSet
+        pass

@@ -14,13 +14,13 @@ class BaseModelViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        print("creot")
         # Accede al usuario autenticado a través de request.user
+        # Hace que se guarde automaticamente el USER
         serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
-        print("me ejecuto")
         # Accede al usuario autenticado a través de request.user
+        # Hace que se guarde automaticamente el USER
         serializer.save(updated_by=self.request.user)
 
     def perform_destroy(self, instance):

@@ -42,12 +42,13 @@ INSTALLED_APPS = [
     'session',
     'historia_clinica',
     'shared',
-    'back_hcl'
+    'back_hcl',
+    'recursos_humanos',
 ]
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'back_hcl.middleware.error_handler.custom_exception_handler',
-'DEFAULT_EXCEPTION_HANDLER': 'back_hcl.middleware.error_handler.custom_exception_handler'
+    'EXCEPTION_HANDLER': 'back_hcl.middleware.djangoframework_handler.custom_exception_handler',
+    'DEFAULT_EXCEPTION_HANDLER': 'rest_framework.views.exception_handler'
 }
 
 MIDDLEWARE = [
@@ -58,7 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'back_hcl.middleware.Log500ErrorsMiddleware.Log500ErrorsMiddleware'
+    'back_hcl.middleware.back_hcl_handler.Log500ErrorsMiddleware'
     #'whitenoise.middleware.WhiteNoiseMiddleware'
 
 ]

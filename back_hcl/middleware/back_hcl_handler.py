@@ -1,10 +1,7 @@
-import logging
 import traceback
-
 from django.http import JsonResponse
-
-from back_hcl.utils.Global import error_message
 from shared.models import ErrorLog
+from shared.utils.Global import error_message
 
 
 class Log500ErrorsMiddleware:
@@ -25,11 +22,15 @@ class Log500ErrorsMiddleware:
             tipo=type(exception).__name__,
             mensaje=str(exception),
             url=request.get_full_path(),
-            archivo=file_name_error
+            archivo=file_name_error,
         )
-        return JsonResponse({
-            "tipo": type(exception).__name__,
-            "message": exception.__str__(),
-            "field_errors": {},
-            "url": request.get_full_path(),
-        }, status=500)
+        exception_attrs = vars(exception)
+        return JsonResponse(
+            error_message(
+                tipo=type(exception).__name__,
+                message=exception.__str__(),
+                fields_errors={},
+                url=request.get_full_path(),
+            ),
+            status=500,
+        )
