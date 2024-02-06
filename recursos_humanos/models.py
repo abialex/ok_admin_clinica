@@ -6,19 +6,21 @@ from shared.utils.baseModel import BaseModel
 
 class Persona(BaseModel):
     dni = models.CharField(max_length=8, null=False, unique=True)
-    nombres = models.CharField(max_length=100)
-    apellidos = models.CharField(max_length=200, null=False)
-    celular = models.CharField(max_length=9, blank=True, null=True)
-    domicilio = models.CharField(max_length=150, blank=True, null=True)
+    nombres = models.CharField(max_length=100, null=False, blank=False)
+    apellidos = models.CharField(max_length=200, null=False, blank=False)
+    celular = models.CharField(max_length=9, null=True, blank=False)
+    domicilio = models.CharField(max_length=150, null=True, blank=False)
     fechaNacimiento = models.DateField(verbose_name="Fecha de nacimiento", null=False)
-    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, blank=False)
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False
+    )
 
     class Meta:
         abstract = True
 
 
 class Doctor(Persona):
-    especialidad = models.CharField(max_length=50)
+    especialidad = models.CharField(max_length=50, null=True)
     # Otros campos específicos de doctores
 
 

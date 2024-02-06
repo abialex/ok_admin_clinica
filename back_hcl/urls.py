@@ -18,7 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 handler404 = custom_404
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('session/', include('session.urls', namespace="session")),
-    path('historia_clinica/', include('historia_clinica.urls', namespace="historia_clinica")),
+    path("admin/", admin.site.urls),
+    path("session/", include("session.urls", namespace="session")),
+    path(
+        "historia_clinica/",
+        include("historia_clinica.urls", namespace="historia_clinica"),
+    ),
+    path(
+        "recursos_humanos/",
+        include("recursos_humanos.urls", namespace="recursos_humanos"),
+    ),
 ]

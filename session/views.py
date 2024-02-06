@@ -9,16 +9,17 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
-from recursos_humanos.serializers import PersonaSerializer, DoctorAgregateSerializer
-#from core.models import UserRol, UserSede
-#from core.serializers import UserRolSerializer, UserSedeSerializer
+from recursos_humanos.serializers import PersonaSerializer, DoctoCreateSerializer
+
+# from core.models import UserRol, UserSede
+# from core.serializers import UserRolSerializer, UserSedeSerializer
 from session.models import UserTokenFirebase
 from session.serializers import *
 from shared.utils.Global import successfull_message, error_message
 from shared.utils.baseModel import BaseModelViewSet
 
 
-#from Utils import create_response_succes, create_response_error
+# from Utils import create_response_succes, create_response_error
 
 class UserViewSet(BaseModelViewSet):
     queryset = User.objects.filter(is_active=True)
@@ -27,10 +28,8 @@ class UserViewSet(BaseModelViewSet):
     def list(self, request, *args, **kwargs):
         # Obtener los datos de la consulta original
         queryset = self.filter_queryset(self.get_queryset())
-
         # Serializar los datos
         serializer = UsersSerializer(queryset, many=True)
-
         # Personalizar la respuesta según tus necesidades
         custom_data = successfull_message(
             tipo=type(self).__name__,
@@ -53,32 +52,28 @@ class UserViewSet(BaseModelViewSet):
 
     def create(self, request, *args, **kwargs):
         result_serializer = UserFormSerializer(data=request.data)
-
         if result_serializer.is_valid():
 
-            try:
-                with transaction.atomic():
-                    user_serializer = UserAgregateSerializer(data=request.data)
-                    user_serializer.is_valid(raise_exception=True)
-                    user_serializer.save()
-                    print(user_serializer.data)
+            with transaction.atomic():
+                user = User.objects.create(
+                    username=result_serializer.data["username"],
+                )
 
-                    request.data["usuario_id"] = user_serializer.data["id"]
-                    print(request.data)
-                    doctor_serializer = DoctorAgregateSerializer(data=request.data)
-                    doctor_serializer.is_valid(raise_exception=True)
-                    doctor_serializer.save()
-            except Exception as e:
-                print("Error serializing")
-                print(e)
-
-
+                doctor = Doctor(
+                    nombres=result_serializer.data["nombres"],
+                    apellidos=result_serializer.data["apellidos"],
+                    dni=result_serializer.data["dni"],
+                    celular=result_serializer.data["celular"],
+                    fechaNacimiento=result_serializer.data["fechaNacimiento"],
+                    usuario_id=user.id,
+                )
+                doctor.save()
 
             custom_response_data = successfull_message(
                 tipo=type(int).__name__,
                 message="historia clinica creada",
                 url=request.get_full_path(),
-                data=1
+                data=user.id,
             )
 
             return Response(custom_response_data, status=status.HTTP_201_CREATED)
@@ -93,9 +88,7 @@ class UserViewSet(BaseModelViewSet):
             return Response(custom_response_data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
-
         response = super().update(request, *args, **kwargs)
-
         custom_response_data = successfull_message(
             tipo=type(int).__name__,
             message="historia clinica modificada",

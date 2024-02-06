@@ -31,6 +31,7 @@ def custom_exception_handler(exc, context):
             "NotAuthenticated": _handler_authentication_error,
             "InvalidToken": _handler_invalid_token_error,
             "ValidationError": _handler_validation_error,
+            "IntegrityError": _integrityError_error,
             # Add more handlers as needed
         }
         res = exception_handler(exc, context)
@@ -46,18 +47,16 @@ def custom_exception_handler(exc, context):
                 fields_errors=message,
                 url=context["request"].path,
             ),
-            status=res.status_code,
+            status=500 if res == None else res.status_code,
         )
     except Exception as e:
         return Response(
-            data={
-                error_message(
-                    tipo=e.__str__(),
-                    message="Problemas internas del backend",
-                    fields_errors={},
-                    url=context["request"].path,
-                )
-            },
+            data=error_message(
+                tipo=e.__str__(),
+                message="Problema no detallado",
+                fields_errors={},
+                url=context["request"].path,
+            ),
             status=500,
         )
 
@@ -86,11 +85,20 @@ def _validation_error(exc, context, response):
     return {"token": ["Token inválido."]}
 
 
+def _integrityError_error(exc, context, response):
+    print(vars(exc))
+
+    return {"integrityError": [exc.__str__()]}
+
+
 def _handler_validation_error(exc, context, response):
     formatted_errors = {}
-    for field, errors in exc.detail.items():
-        formatted_errors[field] = errors
-    return formatted_errors
+    if vars(exc).get("detail"):
+        for field, errors in exc.detail.items():
+            formatted_errors[field] = errors
+            return formatted_errors
+        return formatted_errors
+    return exc.__str__()
 
 
 @api_view(["GET", "POST", "DELETE", "UPDATE", "PUT"])

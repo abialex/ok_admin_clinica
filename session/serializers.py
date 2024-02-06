@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from recursos_humanos.models import Persona, Doctor
+from session.dto import UserDTO
 from session.models import User
 
 
@@ -28,10 +29,10 @@ class UserResponsiveSerializer(serializers.ModelSerializer):
         return extra_data.get('roles', None)
 
 
-class UserAgregateSerializer(serializers.ModelSerializer):
+class UserResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', "email")
+        fields = ("id", "username", "email")
 
 
 class UserFormSerializer(serializers.Serializer):
@@ -41,6 +42,7 @@ class UserFormSerializer(serializers.Serializer):
     apellidos = serializers.CharField(max_length=200)
     celular = serializers.CharField(max_length=9)
     domicilio = serializers.CharField(max_length=150, required=False)
+    fechaNacimiento = serializers.CharField(max_length=12)
 """
     def update(self, instance, validated_data):
 
