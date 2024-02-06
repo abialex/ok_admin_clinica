@@ -10,6 +10,11 @@ class HistoriaClinicaSerializer(serializers.ModelSerializer):
         model = HistoriaClinica
         fields = '__all__'
 
+class HistoriaClinicasSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = HistoriaClinica
+        fields = ('id','motivoConsulta', 'examenInterior', 'examenExterior' )
 
 
 

@@ -1,20 +1,65 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from rest_framework import status
+from rest_framework.response import Response
 
-from back_hcl.utils.baseModel import BaseModelViewSet
 from historia_clinica.models import HistoriaClinica
-from historia_clinica.serializers import HistoriaClinicaSerializer
-from rest_framework import viewsets, generics
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework.authentication import TokenAuthentication
+from historia_clinica.serializers import HistoriaClinicaSerializer, HistoriaClinicasSerializer
 from rest_framework.viewsets import ModelViewSet
 
+from shared.utils.Global import successfull_message
+from shared.utils.baseModel import BaseModelViewSet
 
 # Create your views here.
-class CitasViewSet(ModelViewSet):
+class HistoriaClinicaViewSet(BaseModelViewSet):
     queryset = HistoriaClinica.objects.filter(is_deleted=False)
     serializer_class = HistoriaClinicaSerializer
+
+    def list(self, request, *args, **kwargs):
+        # Obtener los datos de la consulta original
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Serializar los datos
+        serializer = HistoriaClinicasSerializer(queryset, many=True)
+
+        # Personalizar la respuesta según tus necesidades
+        custom_data = successfull_message(
+            tipo=type(self).__name__,
+            message="lista de historias clinicas",
+            url=request.get_full_path(),
+        data=serializer.data
+        )
+        return Response(custom_data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        custom_response_data = successfull_message(
+            tipo=type(response).__name__,
+            message="historia clinica creada",
+            url=request.get_full_path(),
+            data=response.data["id"]
+        )
+
+        return Response(custom_response_data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        custom_response_data = successfull_message(
+            tipo=type(int).__name__,
+            message="historia clinica modificada",
+            url=request.get_full_path(),
+            data=response.data["id"]
+        )
+        return Response(custom_response_data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        custom_response_data = successfull_message(
+            tipo=type(int).__name__,
+            message="historia clinica",
+            url=request.get_full_path(),
+            data=serializer.data
+        )
+        return Response(custom_response_data, status=status.HTTP_200_OK)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,13 +67,7 @@ class CitasViewSet(ModelViewSet):
         self.initialize_custom_logic()
 
     def initialize_custom_logic(self):
-        2/0
         # Agrega lógica personalizada que deseas realizar al inicializar el ViewSet
         pass
 
 
-
-
-class CitasAll(BaseModelViewSet):
-    queryset = HistoriaClinica.objects.all()
-    serializer_class = HistoriaClinicaSerializer

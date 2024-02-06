@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-
+import logging
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-#-!z4%@d&w@_9cpdr=ttcga&o0zd04of!uo5i*o623gj)ou-$4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -41,12 +41,14 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'session',
     'historia_clinica',
-    'back_hcl'
+    'shared',
+    'back_hcl',
+    'recursos_humanos',
 ]
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'back_hcl.middleware.error_handler.custom_exception_handler',
-'DEFAULT_EXCEPTION_HANDLER': 'back_hcl.middleware.error_handler.custom_exception_handler'
+    'EXCEPTION_HANDLER': 'back_hcl.middleware.djangoframework_handler.custom_exception_handler',
+    'DEFAULT_EXCEPTION_HANDLER': 'rest_framework.views.exception_handler'
 }
 
 MIDDLEWARE = [
@@ -57,7 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'back_hcl.middleware.Log500ErrorsMiddleware.Log500ErrorsMiddleware'
+    'back_hcl.middleware.back_hcl_handler.Log500ErrorsMiddleware'
     #'whitenoise.middleware.WhiteNoiseMiddleware'
 
 ]
@@ -82,6 +84,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'back_hcl.wsgi.application'
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('django.log'),
+        logging.StreamHandler(),
+    ]
+)
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -116,13 +126,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'es-us'
+LANGUAGE_CODE = 'es-ES'
 
 TIME_ZONE = 'America/Lima'
 
-USE_I18N = True
+USE_I18N = False
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

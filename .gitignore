@@ -1,0 +1,5 @@
+/shared/migrations/000*
+/django.log
+/db.sqlite3
+.vscode/launch.json
+__pycache__

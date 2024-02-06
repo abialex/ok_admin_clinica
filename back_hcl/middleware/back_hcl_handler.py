@@ -1,0 +1,36 @@
+import traceback
+from django.http import JsonResponse
+from shared.models import ErrorLog
+from shared.utils.Global import error_message
+
+
+class Log500ErrorsMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        return response
+
+    def process_exception(self, request, exception):
+        tb_info = traceback.extract_tb(exception.__traceback__)
+        file_name_error = "--"
+        if tb_info:
+            file_name_error = tb_info[-1].filename
+
+        ErrorLog.objects.create(
+            tipo=type(exception).__name__,
+            mensaje=str(exception),
+            url=request.get_full_path(),
+            archivo=file_name_error,
+        )
+        exception_attrs = vars(exception)
+        return JsonResponse(
+            error_message(
+                tipo=type(exception).__name__,
+                message=exception.__str__(),
+                fields_errors={},
+                url=request.get_full_path(),
+            ),
+            status=500,
+        )
