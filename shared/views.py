@@ -1,6 +1,6 @@
 from shared.models import Foto
 from shared.serializers import FotoPacienteSerializer
-from shared.utils.Global import successfull_message
+from shared.utils.Global import SECCUSSFULL_MESSAGE
 from rest_framework.response import Response
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework import status
@@ -15,7 +15,7 @@ class FotoPacienteViewSet(BaseModelViewSet):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        custom_response_data = successfull_message(
+        custom_response_data = SECCUSSFULL_MESSAGE(
             tipo=type(response).__name__,
             message="Foto creado",
             url=request.get_full_path(),
@@ -30,7 +30,7 @@ class FotoPacienteViewSet(BaseModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        custom_data = successfull_message(
+        custom_data = SECCUSSFULL_MESSAGE(
             tipo=type(self).__name__,
             message="lista de historias clinicas",
             url=request.get_full_path(),
@@ -41,7 +41,7 @@ class FotoPacienteViewSet(BaseModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        custom_response_data = successfull_message(
+        custom_response_data = SECCUSSFULL_MESSAGE(
             tipo=type(int).__name__,
             message="historia clinica",
             url=request.get_full_path(),

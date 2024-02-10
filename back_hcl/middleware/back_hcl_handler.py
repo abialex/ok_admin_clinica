@@ -1,7 +1,7 @@
 import traceback
 from django.http import JsonResponse
 from shared.models import ErrorLog
-from shared.utils.Global import error_message
+from shared.utils.Global import ERROR_MESSAGE, LOGGING_SAVE
 
 
 class Log500ErrorsMiddleware:
@@ -13,20 +13,10 @@ class Log500ErrorsMiddleware:
         return response
 
     def process_exception(self, request, exception):
-        tb_info = traceback.extract_tb(exception.__traceback__)
-        file_name_error = "--"
-        if tb_info:
-            file_name_error = tb_info[-1].filename
-
-        ErrorLog.objects.create(
-            tipo=type(exception).__name__,
-            mensaje=str(exception),
-            url=request.get_full_path(),
-            archivo=file_name_error,
-        )
+        LOGGING_SAVE(exc=exception, url=request.get_full_path())
         exception_attrs = vars(exception)
         return JsonResponse(
-            error_message(
+            ERROR_MESSAGE(
                 tipo=type(exception).__name__,
                 message=exception.__str__(),
                 fields_errors={},

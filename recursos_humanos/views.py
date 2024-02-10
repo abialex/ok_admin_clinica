@@ -1,6 +1,7 @@
 from datetime import timezone
 import datetime
 from django.shortcuts import render
+from psycopg2 import IntegrityError
 
 from recursos_humanos.models import Doctor
 from recursos_humanos.serializers import (
@@ -10,7 +11,7 @@ from recursos_humanos.serializers import (
     DoctorsResponseSerializer,
 )
 from session.models import User
-from shared.utils.Global import error_message, successfull_message
+from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE
 from rest_framework import status
 from shared.utils.baseModel import BaseModelViewSet
 from django.db import transaction
@@ -26,7 +27,7 @@ class DoctorViewSet(BaseModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = DoctorsResponseSerializer(queryset, many=True)
-        custom_data = successfull_message(
+        custom_data = SECCUSSFULL_MESSAGE(
             tipo=type(self).__name__,
             message="lista de Doctores",
             url=request.get_full_path(),
@@ -37,7 +38,7 @@ class DoctorViewSet(BaseModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = DoctorResponseSerializer(instance)
-        custom_response_data = successfull_message(
+        custom_response_data = SECCUSSFULL_MESSAGE(
             tipo=type(int).__name__,
             message="Doctor",
             url=request.get_full_path(),
@@ -51,6 +52,8 @@ class DoctorViewSet(BaseModelViewSet):
             with transaction.atomic():
                 username = "slg_" + result_serializer.data["dni"][:2]
                 contrasenia = result_serializer.data["dni"]
+                if User.objects.filter(username=username).__len__() > 0:
+                    raise IntegrityError("Este username ya existe.")
                 user = User.objects.create(
                     username=username,
                     password=make_password(contrasenia),
@@ -66,7 +69,7 @@ class DoctorViewSet(BaseModelViewSet):
                 doctor.created_by = self.request.user
                 doctor.save()
 
-            custom_response_data = successfull_message(
+            custom_response_data = SECCUSSFULL_MESSAGE(
                 tipo=type(int).__name__,
                 message="Doctor creado",
                 url=request.get_full_path(),
@@ -77,7 +80,7 @@ class DoctorViewSet(BaseModelViewSet):
             )
             return Response(custom_response_data, status=status.HTTP_201_CREATED)
         else:
-            custom_response_data = error_message(
+            custom_response_data = ERROR_MESSAGE(
                 tipo=type(int).__name__,
                 message="error",
                 url=request.get_full_path(),
@@ -99,7 +102,7 @@ class DoctorViewSet(BaseModelViewSet):
                 instance.updated_by = self.request.user
                 instance.save()
 
-            custom_response_data = successfull_message(
+            custom_response_data = SECCUSSFULL_MESSAGE(
                 tipo=type(int).__name__,
                 message="Doctor Modificado",
                 url=request.get_full_path(),
@@ -107,7 +110,7 @@ class DoctorViewSet(BaseModelViewSet):
             )
             return Response(custom_response_data, status=status.HTTP_201_CREATED)
         else:
-            custom_response_data = error_message(
+            custom_response_data = ERROR_MESSAGE(
                 tipo=type(int).__name__,
                 message="error",
                 url=request.get_full_path(),

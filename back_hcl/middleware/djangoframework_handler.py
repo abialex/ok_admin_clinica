@@ -1,13 +1,12 @@
 import json
-
+import traceback
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
-
-from shared.utils.Global import error_message
+from shared.utils.Global import ERROR_MESSAGE, LOGGING_SAVE
 
 
 class NotFound(APIException):
@@ -25,23 +24,26 @@ def custom_exception_handler(exc, context):
     try:
         exception_class = exc.__class__.__name__
         handlers = {
-            "Http404": _handler_Http404r,
-            "MethodNotAllowed": _handler_MethodNotAllowed,
-            "AuthenticationFailed": _handler_invalid_token,
-            "NotAuthenticated": _handler_authentication_error,
-            "InvalidToken": _handler_invalid_token_error,
+            "Http404": {"Http404": "no se encontró el objeto."},
+            "MethodNotAllowed": {"MethodNotAllowed": "método no soportado"},
+            "AuthenticationFailed": {"token": "Token inválido."},
+            "NotAuthenticated": {
+                "authentication": "An authorization token is not provided."
+            },
+            "InvalidToken": {"token": "An authorization token is not valid."},
+            "IntegrityError": {"integrityError": exc.__str__()},
             "ValidationError": _handler_validation_error,
-            "IntegrityError": _integrityError_error,
             # Add more handlers as needed
         }
         res = exception_handler(exc, context)
-        if exception_class in handlers:
+        if "ValidationError" == exception_class:
             message = handlers[exception_class](exc, context, res)
         else:
-            # if there is no hanlder is presnet
-            message = str(exc)
+            # error no especificado
+            message = {exception_class: str(exc)}
+        LOGGING_SAVE(exc=exc, url=context["request"].path)
         return Response(
-            data=error_message(
+            data=ERROR_MESSAGE(
                 tipo=exception_class,
                 message="Problemas en el backend",
                 fields_errors=message,
@@ -50,10 +52,11 @@ def custom_exception_handler(exc, context):
             status=500 if res == None else res.status_code,
         )
     except Exception as e:
+        LOGGING_SAVE(exc=e, url=context["request"].path)
         return Response(
-            data=error_message(
+            data=ERROR_MESSAGE(
                 tipo=e.__str__(),
-                message="Problema no detallado",
+                message="Problema en el control de errores",
                 fields_errors={},
                 url=context["request"].path,
             ),
@@ -61,51 +64,21 @@ def custom_exception_handler(exc, context):
         )
 
 
-def _handler_Http404r(exc, context, response):
-    return {"Http404": ["no se encontró el objeto."]}
-
-
-def _handler_authentication_error(exc, context, response):
-    return {"authentication": ["An authorization token is not provided."]}
-
-
-def _handler_MethodNotAllowed(exc, context, response):
-    return {"MethodNotAllowed": ["método no soportado"]}
-
-
-def _handler_invalid_token_error(exc, context, response):
-    return {"token": ["An authorization token is not valid."]}
-
-
-def _handler_invalid_token(exc, context, response):
-    return {"token": ["Token inválido."]}
-
-
-def _validation_error(exc, context, response):
-    return {"token": ["Token inválido."]}
-
-
-def _integrityError_error(exc, context, response):
-    print(vars(exc))
-
-    return {"integrityError": [exc.__str__()]}
-
-
 def _handler_validation_error(exc, context, response):
     formatted_errors = {}
     if vars(exc).get("detail"):
         for field, errors in exc.detail.items():
-            formatted_errors[field] = errors
-            return formatted_errors
+            # Asumiendo que siempre quieres el primer mensaje de error
+            formatted_errors[field] = errors[0] if errors else "Error desconocido"
         return formatted_errors
-    return exc.__str__()
+    return {"general": (exc.messages[0])}
 
 
 @api_view(["GET", "POST", "DELETE", "UPDATE", "PUT"])
 def custom_404(request, exception=None):
-    response = error_message(
+    response = ERROR_MESSAGE(
         tipo=type(request).__name__,
-        message="No se encontró la URL",
+        message="la URL no existe",
         fields_errors={},
         url=request.path,
     )
