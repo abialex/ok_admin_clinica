@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
+from rest_framework.authtoken.models import Token
 
 from recursos_humanos.serializers import PersonaSerializer, DoctoCreateSerializer
 
@@ -17,7 +18,9 @@ from session.models import UserTokenFirebase
 from session.serializers import *
 from shared.utils.Global import successfull_message, error_message
 from shared.utils.baseModel import BaseModelViewSet
-
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 
 # from Utils import create_response_succes, create_response_error
 
@@ -105,3 +108,52 @@ class UserViewSet(BaseModelViewSet):
     def initialize_custom_logic(self):
         # Agrega lógica personalizada que deseas realizar al inicializar el ViewSet
         pass
+
+
+class AuthTokenLogin(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+        if serializer.is_valid():
+            user = serializer.validated_data["user"]
+            token, created = Token.objects.get_or_create(user=user)
+            response = successfull_message(
+                tipo=type(user).__name__,
+                message="Login",
+                url=request.get_full_path(),
+                data={
+                    "username": user.username,
+                    "user_id": user.pk,
+                    "token": "token " + token.key,
+                    "is_new_token": created,
+                },
+            )
+            return Response(response)
+        else:
+            return Response(
+                data=error_message(
+                    tipo="User",
+                    message="Credenciales Incorrectos",
+                    url=request.get_full_path(),
+                    fields_errors={},
+                ),
+                status=403,
+            )
+
+
+class AuthTokenDelete(ObtainAuthToken):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        token, created = Token.objects.get_or_create(user=request.user)
+        token.delete()
+        return Response(
+            successfull_message(
+                tipo=type(int).__name__,
+                message="Sesión cerrada",
+                url=request.get_full_path(),
+                data={},
+            )
+        )

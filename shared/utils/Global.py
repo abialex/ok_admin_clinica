@@ -1,10 +1,9 @@
-
-
 def error_message_log(name_file, message):
     return {
         "file": name_file,
         "message": message
     }
+
 
 def error_message(tipo, message, url, fields_errors=None):
     return {
