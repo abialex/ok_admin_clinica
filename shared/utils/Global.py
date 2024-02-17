@@ -8,7 +8,12 @@ def ERROR_MESSAGE_LOG(name_file, message):
 
 
 def ERROR_MESSAGE(tipo, message, url, fields_errors=None):
-    return {"tipo": tipo, "message": message, "field_errors": fields_errors, "url": url}
+    return {
+        "tipo": tipo,
+        "message": message,
+        "field_errors": fields_errors,
+        "url": url,
+    }
 
 
 def SECCUSSFULL_MESSAGE(tipo, message, url, data):
@@ -50,3 +55,15 @@ def LOGGING_SAVE(exc, url):
         url=url,
         archivo=file_name_error,
     )
+
+
+TIPO_ERRORS = {
+    "Http404": {"Http404": "no se encontró el objeto."},
+    "MethodNotAllowed": {"MethodNotAllowed": "método no soportado"},
+    "AuthenticationFailed": {"token": "Token inválido."},
+    "NotAuthenticated": {"authentication": "An authorization token is not provided."},
+    "InvalidToken": {"token": "An authorization token is not valid."},
+    "IntegrityError": {"integrityError": "Esta acción vulvera un restricción"},
+    "ValidationError": {"ValidationError": "Los campos no están completos"},
+    # Add more handlers as needed
+}
