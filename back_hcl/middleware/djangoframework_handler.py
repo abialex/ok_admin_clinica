@@ -16,10 +16,6 @@ class NotFound(APIException):
     def __init__(self, detail=None):
         self.detail = detail or self.default_detail
 
-
-from django.contrib import messages
-
-
 def custom_exception_handler(exc, context):
     try:
         exception_class = exc.__class__.__name__
