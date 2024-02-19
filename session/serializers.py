@@ -49,3 +49,7 @@ class UsersSerializer(serializers.ModelSerializer):
         model = User
         fields = '__all__'
 # --- FIN DEL BLOQUE ---
+
+
+class TokenSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=120, required=True)

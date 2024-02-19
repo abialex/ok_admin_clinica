@@ -2,7 +2,7 @@ import traceback
 
 from shared.models import ErrorLog
 
-
+DIAS_TOKEN = 7
 def ERROR_MESSAGE_LOG(name_file, message):
     return {"file": name_file, "message": message}
 
@@ -25,7 +25,32 @@ def SECCUSSFULL_MESSAGE(tipo, message, url, data):
     }
 
 
+def es_paciente(user, rol):
+    # Aquí puedes realizar múltiples operaciones
+    if hasattr(user, rol):
+        # Supongamos que queremos hacer algo más además de comprobar el atributo
+        paciente = user.paciente
+        return paciente.alguna_otra_operacion()  # Esto es solo un ejemplo
+    return False
+
+
 TABLA_ROL = {
+    "PACIENTE": [lambda user: hasattr(user, "paciente"), lambda user: user.paciente],
+    "DOCTOR": [lambda user: hasattr(user, "doctor"), lambda user: user.doctor],
+    "ASISTENTE": [lambda user: hasattr(user, "asistente"), lambda user: user.asistente],
+    "SUPERDOCTOR": [
+        lambda user: hasattr(user, "susperdoctor"),
+        lambda user: user.susperdoctor,
+    ],
+    "ASISTENTE": [lambda user: hasattr(user, "asistente"), lambda user: user.asistente],
+    "ADMINISTRADOR": [
+        lambda user: hasattr(user, "administrador"),
+        lambda user: user.administrador,
+    ],
+    "DEVELOPER": [lambda user: hasattr(user, "developer"), lambda user: user.developer],
+}
+
+TABLA_ROL_OLD = {
     "PACIENTE": lambda user: hasattr(user, "paciente"),
     "DOCTOR": lambda user: hasattr(user, "doctor"),
     "ASISTENTE": lambda user: hasattr(user, "asistente"),
@@ -37,10 +62,13 @@ TABLA_ROL = {
 
 
 def GET_ROL(user):
-    for rol, check in TABLA_ROL.items():
-        if check(user):
-            return rol
-    return "SIN ROL"
+    for rol, funcionList in TABLA_ROL.items():
+        # lambda user tiene el atributo rol
+        if funcionList[0](user):
+            # lambda user devuelve el objeto rol
+            return rol, funcionList[1](user)
+
+    return "Sin rol", user
 
 
 def LOGGING_SAVE(exc, url):

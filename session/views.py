@@ -11,13 +11,13 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.authtoken.models import Token
 
-from recursos_humanos.serializers import PersonaSerializer, DoctoCreateSerializer
+from recursos_humanos.serializers import PersonaSerializer, DoctorCreateSerializer
 
 # from core.models import UserRol, UserSede
 # from core.serializers import UserRolSerializer, UserSedeSerializer
 from session.models import UserTokenFirebase
 from session.serializers import *
-from shared.utils.Global import GET_ROL, SECCUSSFULL_MESSAGE, ERROR_MESSAGE
+from shared.utils.Global import DIAS_TOKEN, GET_ROL, SECCUSSFULL_MESSAGE, ERROR_MESSAGE
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
@@ -119,16 +119,26 @@ class AuthTokenLogin(ObtainAuthToken):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             token, created = Token.objects.get_or_create(user=user)
+            diasToken = DIAS_TOKEN - (datetime.now() - token.created).days
+            # creando un nuevo token si se vence
+            if diasToken < 1:
+                token.delete()
+                token = Token.objects.create(user=user)
+                created = True
+                diasToken = 7
+            rol, persona = GET_ROL(user)
             response = SECCUSSFULL_MESSAGE(
                 tipo=type(user).__name__,
                 message="Login",
                 url=request.get_full_path(),
                 data={
                     "username": user.username,
+                    "nombres": persona.nombres + " " + persona.apellidos,
                     "user_id": user.pk,
                     "token": "token " + token.key,
                     "is_new_token": created,
-                    "rol": GET_ROL(user),
+                    "rol": rol,
+                    "dias_token": diasToken,
                 },
             )
             return Response(response)
@@ -149,6 +159,7 @@ class AuthTokenDelete(ObtainAuthToken):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
+        print(request.headers)
         token, created = Token.objects.get_or_create(user=request.user)
         token.delete()
         return Response(
@@ -156,6 +167,47 @@ class AuthTokenDelete(ObtainAuthToken):
                 tipo=type(int).__name__,
                 message="Sesión cerrada",
                 url=request.get_full_path(),
-                data={},
+                data=True,
             )
+        )
+
+
+@api_view(["POST"])
+def login_authenticated(request):
+    tokenSerializer = TokenSerializer(data=request.data)
+    if tokenSerializer.is_valid():
+        key = tokenSerializer.data["token"].replace("token ", "")
+        token = Token.objects.filter(key=key).first()
+
+        if token:
+            daysToken = (datetime.now() - token.created).days
+            token_status = (
+                "su sesión ha caducado"
+                if daysToken >= DIAS_TOKEN
+                else "Su sesión ha terminado, inicie sesión"
+            )
+            is_valid = daysToken < DIAS_TOKEN
+        else:
+            token_status = "Su sesión ha terminado, inicie sesión"
+            is_valid = False
+
+        custom_response_data = SECCUSSFULL_MESSAGE(
+            tipo=type(int).__name__,
+            message="token",
+            url=request.get_full_path(),
+            data={
+                "mensaje": token_status,
+                "isValid": is_valid,
+            },
+        )
+        return Response(custom_response_data, status=status.HTTP_200_OK)
+    else:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=type(int).__name__,
+                message="error",
+                url=request.get_full_path(),
+                fields_errors=tokenSerializer.errors,
+            ),
+            status=status.HTTP_400_BAD_REQUEST,
         )
