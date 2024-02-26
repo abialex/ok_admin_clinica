@@ -1,10 +1,12 @@
 from rest_framework import status
 from cita.models import CitaCompleta
 from cita.modules.cita_completa.serializers import CitaCompletaCreateSerializer
-from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE
+from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE, STRING
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.response import Response
 from django.db import transaction
+
+from shared.utils.decoradores import validar_serializer
 
 
 # Create your views here.
@@ -33,44 +35,35 @@ class CitaCompletaViewSet(BaseModelViewSet):
     #         data=serializer.data,
     #     )
     #     return Response(custom_response_data, status=status.HTTP_200_OK)
-
-    def create(self, request, *args, **kwargs):
-        result_serializer = CitaCompletaCreateSerializer(data=request.data)
-        if result_serializer.is_valid():
-            with transaction.atomic():
-
-                razon = (
-                    result_serializer.data["razon"]
-                    if result_serializer.data.get("razon")
-                    else None
-                )
-
-                cita = CitaCompleta(
-                    razon=razon,
-                    doctor_id=result_serializer.data["doctor_id"],
-                    ubicacion_id=result_serializer.data["ubicacion_id"],
-                    fechaHoraCita=result_serializer.data["fechaHoraCita"],
-                    estado=result_serializer.data["estado"],
-                    paciente_id=result_serializer.data["paciente_id"],
-                )
-                cita.created_by = self.request.user
-                cita.save()
-
-            custom_response_data = SECCUSSFULL_MESSAGE(
-                tipo=type(int).__name__,
-                message="Cita Completa creado",
-                url=request.get_full_path(),
-                data=cita.id,
+    @validar_serializer(serializer=CitaCompletaCreateSerializer)
+    def create(self, request, result_serializer, *args, **kwargs):
+        with transaction.atomic():
+            razon = (
+                result_serializer.data[STRING(CitaCompleta.razon)]
+                if result_serializer.data.get(STRING(CitaCompleta.razon))
+                else None
             )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
-        else:
-            custom_response_data = ERROR_MESSAGE(
-                tipo=type(int).__name__,
-                message="error",
-                url=request.get_full_path(),
-                fields_errors=result_serializer.errors,
+
+            cita = CitaCompleta(
+                razon=razon,
+                doctor_id=result_serializer.data[STRING(CitaCompleta.doctor_id)],
+                ubicacion_id=result_serializer.data[STRING(CitaCompleta.ubicacion_id)],
+                fechaHoraCita=result_serializer.data[
+                    STRING(CitaCompleta.fechaHoraCita)
+                ],
+                estado=result_serializer.data[STRING(CitaCompleta.estado)],
+                paciente_id=result_serializer.data[STRING(CitaCompleta.paciente_id)],
             )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
+            cita.created_by = self.request.user
+            cita.save()
+
+        custom_response_data = SECCUSSFULL_MESSAGE(
+            tipo=self.queryset.model.__name__,
+            message=self.queryset.model.__name__ + " creado",
+            url=request.get_full_path(),
+            data=cita.id,
+        )
+        return Response(custom_response_data, status=status.HTTP_201_CREATED)
 
     # def update(self, request, *args, **kwargs):
     #     result_serializer = PacienteUpdateSerializer(data=request.data)

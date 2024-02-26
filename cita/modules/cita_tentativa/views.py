@@ -1,10 +1,12 @@
 from rest_framework import status
 from cita.models import CitaTentativa
 from cita.modules.cita_tentativa.serializers import CitaTentativaCreateSerializer
-from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE
+from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE, STRING
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.response import Response
 from django.db import transaction
+
+from shared.utils.decoradores import validar_serializer
 
 
 # Create your views here.
@@ -33,38 +35,44 @@ class CitaTentativaViewSet(BaseModelViewSet):
     #         data=serializer.data,
     #     )
     #     return Response(custom_response_data, status=status.HTTP_200_OK)
-
-    def create(self, request, *args, **kwargs):
+    @validar_serializer(serializer=CitaTentativaCreateSerializer)
+    def create(self, request, result_serializer):
         result_serializer = CitaTentativaCreateSerializer(data=request.data)
         if result_serializer.is_valid():
             with transaction.atomic():
                 celular = (
-                    result_serializer.data["celular"]
-                    if result_serializer.data.get("celular")
+                    result_serializer.data[STRING(CitaTentativa.celular)]
+                    if result_serializer.data.get(STRING(CitaTentativa.celular))
                     else None
                 )
 
                 razon = (
-                    result_serializer.data["razon"]
-                    if result_serializer.data.get("razon")
+                    result_serializer.data[STRING(CitaTentativa.razon)]
+                    if result_serializer.data.get(STRING(CitaTentativa.razon))
                     else None
                 )
 
                 cita = CitaTentativa(
                     razon=razon,
                     celular=celular,
-                    doctor_id=result_serializer.data["doctor_id"],
-                    ubicacion_id=result_serializer.data["ubicacion_id"],
-                    fechaHoraCita=result_serializer.data["fechaHoraCita"],
-                    estado=result_serializer.data["estado"],
-                    datosPaciente=result_serializer.data["datosPaciente"],
+                    doctor_id=result_serializer.data[STRING(CitaTentativa.doctor_id)],
+                    ubicacion_id=result_serializer.data[
+                        STRING(CitaTentativa.ubicacion_id)
+                    ],
+                    fechaHoraCita=result_serializer.data[
+                        STRING(CitaTentativa.fechaHoraCita)
+                    ],
+                    estado=result_serializer.data[STRING(CitaTentativa.estado)],
+                    datosPaciente=result_serializer.data[
+                        STRING(CitaTentativa.datosPaciente)
+                    ],
                 )
                 cita.created_by = self.request.user
                 cita.save()
 
             custom_response_data = SECCUSSFULL_MESSAGE(
-                tipo=type(int).__name__,
-                message="Cita Tentativa creado",
+                tipo=self.queryset.model.__name__,
+                message=self.queryset.model.__name__ + " creado",
                 url=request.get_full_path(),
                 data=cita.id,
             )
@@ -76,7 +84,7 @@ class CitaTentativaViewSet(BaseModelViewSet):
                 url=request.get_full_path(),
                 fields_errors=result_serializer.errors,
             )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
+            return Response(custom_response_data, status=status.HTTP_400_BAD_REQUEST)
 
     # def update(self, request, *args, **kwargs):
     #     result_serializer = PacienteUpdateSerializer(data=request.data)

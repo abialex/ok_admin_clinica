@@ -5,7 +5,7 @@ from historia_clinica.models import HistoriaClinica
 from historia_clinica.serializers import HistoriaClinicaSerializer, HistoriaClinicasSerializer
 from rest_framework.viewsets import ModelViewSet
 
-from shared.utils.Global import SECCUSSFULL_MESSAGE
+from shared.utils.Global import SECCUSSFULL_MESSAGE, STRING
 from shared.utils.baseModel import BaseModelViewSet
 
 # Create your views here.
@@ -23,14 +23,13 @@ class HistoriaClinicaViewSet(BaseModelViewSet):
         data=serializer.data
         )
         return Response(custom_data, status=status.HTTP_200_OK)
-
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         custom_response_data = SECCUSSFULL_MESSAGE(
             tipo=type(response).__name__,
             message="historia clinica creada",
             url=request.get_full_path(),
-            data=response.data["id"],
+            data=response.data[STRING(HistoriaClinica.id)],
         )
         return Response(custom_response_data, status=status.HTTP_201_CREATED)
 
@@ -40,7 +39,7 @@ class HistoriaClinicaViewSet(BaseModelViewSet):
             tipo=type(int).__name__,
             message="historia clinica modificada",
             url=request.get_full_path(),
-            data=response.data["id"]
+            data=response.data[STRING(HistoriaClinica.id)],
         )
         return Response(custom_response_data, status=status.HTTP_200_OK)
 

@@ -17,7 +17,13 @@ from recursos_humanos.serializers import PersonaSerializer
 # from core.serializers import UserRolSerializer, UserSedeSerializer
 from session.models import UserTokenFirebase
 from session.serializers import *
-from shared.utils.Global import DIAS_TOKEN, GET_ROL, SECCUSSFULL_MESSAGE, ERROR_MESSAGE
+from shared.utils.Global import (
+    DIAS_TOKEN,
+    GET_ROL,
+    SECCUSSFULL_MESSAGE,
+    ERROR_MESSAGE,
+    STRING,
+)
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
@@ -97,7 +103,7 @@ class UserViewSet(BaseModelViewSet):
             tipo=type(int).__name__,
             message="historia clinica modificada",
             url=request.get_full_path(),
-            data=response.data["id"],
+            data=response.data[STRING(User.id)],
         )
         return Response(custom_response_data, status=status.HTTP_200_OK)
 
@@ -125,7 +131,7 @@ class AuthTokenLogin(ObtainAuthToken):
                 token.delete()
                 token = Token.objects.create(user=user)
                 created = True
-                diasToken = 7
+                diasToken = DIAS_TOKEN
             rol, persona = GET_ROL(user)
             response = SECCUSSFULL_MESSAGE(
                 tipo=type(user).__name__,
@@ -163,7 +169,7 @@ class AuthTokenDelete(ObtainAuthToken):
         token.delete()
         return Response(
             SECCUSSFULL_MESSAGE(
-                tipo=type(int).__name__,
+                tipo=type(bool).__name__,
                 message="Sesión cerrada",
                 url=request.get_full_path(),
                 data=True,

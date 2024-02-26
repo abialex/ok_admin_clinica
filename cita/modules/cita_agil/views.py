@@ -1,11 +1,13 @@
 from rest_framework import status
 from cita.models import CitaAgil
 from cita.modules.cita_agil.serializers import CitaAgilCreateSerializer
-from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE
+from shared.utils.Global import STRING, ERROR_MESSAGE, SECCUSSFULL_MESSAGE
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.response import Response
 from django.db import transaction
 from django.contrib.auth.hashers import make_password
+
+from shared.utils.decoradores import validar_serializer
 
 
 # Create your views here.
@@ -34,49 +36,38 @@ class CitaAgilViewSet(BaseModelViewSet):
     #         data=serializer.data,
     #     )
     #     return Response(custom_response_data, status=status.HTTP_200_OK)
-
-    def create(self, request, *args, **kwargs):
-        result_serializer = CitaAgilCreateSerializer(data=request.data)
-        if result_serializer.is_valid():
-            with transaction.atomic():
-                celular = (
-                    result_serializer.data["celular"]
-                    if result_serializer.data.get("celular")
-                    else None
-                )
-                razon = (
-                    result_serializer.data["razon"]
-                    if result_serializer.data.get("razon")
-                    else None
-                )
-
-                cita = CitaAgil(
-                    razon=razon,
-                    doctor_id=result_serializer.data["doctor_id"],
-                    ubicacion_id=result_serializer.data["ubicacion_id"],
-                    fechaHoraCita=result_serializer.data["fechaHoraCita"],
-                    estado=result_serializer.data["estado"],
-                    datosPaciente=result_serializer.data["datosPaciente"],
-                    celular=celular,
-                )
-                cita.created_by = self.request.user
-                cita.save()
-
-            custom_response_data = SECCUSSFULL_MESSAGE(
-                tipo=type(int).__name__,
-                message="Cita Agil creado",
-                url=request.get_full_path(),
-                data=cita.id,
+    @validar_serializer(serializer=CitaAgilCreateSerializer)
+    def create(self, request, result_serializer, *args, **kwargs):
+        with transaction.atomic():
+            celular = (
+                result_serializer.data[STRING(CitaAgil.celular)]
+                if result_serializer.data.get(STRING(CitaAgil.celular))
+                else None
             )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
-        else:
-            custom_response_data = ERROR_MESSAGE(
-                tipo=type(int).__name__,
-                message="error",
-                url=request.get_full_path(),
-                fields_errors=result_serializer.errors,
+            razon = (
+                result_serializer.data[STRING(CitaAgil.razon)]
+                if result_serializer.data.get(STRING(CitaAgil.razon))
+                else None
             )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
+
+            cita = CitaAgil(
+                razon=razon,
+                doctor_id=result_serializer.data[STRING(CitaAgil.doctor_id)],
+                ubicacion_id=result_serializer.data[STRING(CitaAgil.ubicacion_id)],
+                fechaHoraCita=result_serializer.data[STRING(CitaAgil.fechaHoraCita)],
+                estado=result_serializer.data[STRING(CitaAgil.estado)],
+                datosPaciente=result_serializer.data[STRING(CitaAgil.datosPaciente)],
+                celular=celular,
+            )
+            cita.created_by = self.request.user
+            cita.save()
+        custom_response_data = SECCUSSFULL_MESSAGE(
+            tipo=self.queryset.model.__name__,
+            message=self.queryset.model.__name__ + " creado",
+            url=request.get_full_path(),
+            data=cita.id,
+        )
+        return Response(custom_response_data, status=status.HTTP_201_CREATED)
 
     # def update(self, request, *args, **kwargs):
     #     result_serializer = PacienteUpdateSerializer(data=request.data)

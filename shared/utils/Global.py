@@ -127,6 +127,10 @@ def GET_ESTADO_CITA(estado):
     ).name
 
 
+def STRING(atributo):
+    return atributo.field.attname
+
+
 def LOGGING_SAVE(exc, url):
     tb_info = traceback.extract_tb(exc.__traceback__)
     file_name_error = "--"

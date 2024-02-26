@@ -25,7 +25,7 @@ class CitaSerializer(serializers.Serializer):
 
 
 # --- FIN DEL BLOQUE ---
-class CitaByFechaIdUbicacionIdDoctor(serializers.Serializer):
+class CitaByFechaIdUbicacionIdDoctorSerializer(serializers.Serializer):
     fechaHoraCita = serializers.DateField()
     doctor_id = serializers.PrimaryKeyRelatedField(
         queryset=Doctor.objects.filter(is_active=True),

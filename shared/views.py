@@ -1,6 +1,6 @@
 from shared.models import Foto
 from shared.serializers import FotoPacienteSerializer
-from shared.utils.Global import SECCUSSFULL_MESSAGE
+from shared.utils.Global import SECCUSSFULL_MESSAGE, STRING
 from rest_framework.response import Response
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework import status
@@ -19,12 +19,14 @@ class FotoPacienteViewSet(BaseModelViewSet):
             tipo=type(response).__name__,
             message="Foto creado",
             url=request.get_full_path(),
-            data=response.data["id"],
+            data=response.data[STRING(Foto.id)],
         )
         return Response(custom_response_data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
-        serializer.validated_data["imagen"].name = str(uuid.uuid4()) + str(".jpg")
+        serializer.validated_data[STRING(Foto.imagen)].name = str(uuid.uuid4()) + str(
+            ".jpg"
+        )
         serializer.save(created_by=self.request.user)
 
     def list(self, request, *args, **kwargs):
