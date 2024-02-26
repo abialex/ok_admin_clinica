@@ -1,5 +1,5 @@
 from django.db import models
-from cita.choices import EstadoCitaTentativa
+from cita.choices import EstadoCita
 from recursos_humanos.models import Doctor, Paciente
 from shared.utils.baseModel import BaseModel
 from ubicacion.models import Ubicacion
@@ -11,8 +11,8 @@ class Cita(BaseModel):
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE, null=False)
     fechaHoraCita = models.DateTimeField(blank=False, null=False)
     estado = models.IntegerField(
-        choices=EstadoCitaTentativa.choices,
-        default=EstadoCitaTentativa.PENDIENTE,
+        choices=EstadoCita.choices,
+        default=EstadoCita.PENDIENTE,
     )
 
     class Meta:

@@ -159,7 +159,6 @@ class AuthTokenDelete(ObtainAuthToken):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        print(request.headers)
         token, created = Token.objects.get_or_create(user=request.user)
         token.delete()
         return Response(
