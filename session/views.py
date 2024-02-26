@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.authtoken.models import Token
 
-from recursos_humanos.serializers import PersonaSerializer, DoctorCreateSerializer
+from recursos_humanos.serializers import PersonaSerializer
 
 # from core.models import UserRol, UserSede
 # from core.serializers import UserRolSerializer, UserSedeSerializer
@@ -137,7 +137,7 @@ class AuthTokenLogin(ObtainAuthToken):
                     "user_id": user.pk,
                     "token": "token " + token.key,
                     "is_new_token": created,
-                    "rol": rol,
+                    "rol": rol.name,
                     "dias_token": diasToken,
                 },
             )
@@ -181,11 +181,7 @@ def login_authenticated(request):
 
         if token:
             daysToken = (datetime.now() - token.created).days
-            token_status = (
-                "su sesión ha caducado"
-                if daysToken >= DIAS_TOKEN
-                else "Su sesión ha terminado, inicie sesión"
-            )
+            token_status = "su sesión ha caducado" if daysToken >= DIAS_TOKEN else "ok"
             is_valid = daysToken < DIAS_TOKEN
         else:
             token_status = "Su sesión ha terminado, inicie sesión"

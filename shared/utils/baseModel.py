@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from threadlocals.threadlocals import get_current_user
+from django.contrib import admin
 
 class BaseModelViewSet(ModelViewSet):
     authentication_classes = [TokenAuthentication]
@@ -39,3 +40,20 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+class BaseModelAdmin(admin.ModelAdmin):
+    exclude = (
+        "created_by",
+        "updated_by",
+        "notes",
+    )  # Excluir estos campos del formulario de admin por defecto
+
+    def save_model(self, request, obj, form, change):
+        if (
+            not obj.pk
+        ):  # Si es una creación de objeto nuevo, pk (primary key) no estará establecida
+            obj.created_by = request.user
+        else:  # Si es una actualización, solo cambiamos 'updated_by'
+            obj.updated_by = request.user
+        super().save_model(request, obj, form, change)

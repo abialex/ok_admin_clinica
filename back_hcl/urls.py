@@ -30,4 +30,8 @@ urlpatterns = [
         "recursos_humanos/",
         include("recursos_humanos.urls", namespace="recursos_humanos"),
     ),
+    path(
+        "citas/",
+        include("cita.urls", namespace="cita"),
+    ),
 ]  # + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

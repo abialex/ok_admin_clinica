@@ -1,8 +1,18 @@
 import traceback
-
+from enum import Enum
 from shared.models import ErrorLog
 
+
 DIAS_TOKEN = 7
+class RolEnum(Enum):
+    DEVELOPER = 0
+    ADMINISTRADOR = 1
+    SUPERDOCTOR = 3
+    DOCTOR = 4
+    ASISTENTE = 5
+    PACIENTE = 6
+
+
 def ERROR_MESSAGE_LOG(name_file, message):
     return {"file": name_file, "message": message}
 
@@ -35,31 +45,28 @@ def es_paciente(user, rol):
 
 
 TABLA_ROL = {
-    "PACIENTE": [lambda user: hasattr(user, "paciente"), lambda user: user.paciente],
-    "DOCTOR": [lambda user: hasattr(user, "doctor"), lambda user: user.doctor],
-    "ASISTENTE": [lambda user: hasattr(user, "asistente"), lambda user: user.asistente],
-    "SUPERDOCTOR": [
+    RolEnum.PACIENTE: [
+        lambda user: hasattr(user, "paciente"),
+        lambda user: user.paciente,
+    ],
+    RolEnum.DOCTOR: [lambda user: hasattr(user, "doctor"), lambda user: user.doctor],
+    RolEnum.ASISTENTE: [
+        lambda user: hasattr(user, "asistente"),
+        lambda user: user.asistente,
+    ],
+    RolEnum.SUPERDOCTOR: [
         lambda user: hasattr(user, "susperdoctor"),
         lambda user: user.susperdoctor,
     ],
-    "ASISTENTE": [lambda user: hasattr(user, "asistente"), lambda user: user.asistente],
-    "ADMINISTRADOR": [
+    RolEnum.ADMINISTRADOR: [
         lambda user: hasattr(user, "administrador"),
         lambda user: user.administrador,
     ],
-    "DEVELOPER": [lambda user: hasattr(user, "developer"), lambda user: user.developer],
+    RolEnum.DEVELOPER: [
+        lambda user: hasattr(user, "developer"),
+        lambda user: user.developer,
+    ],
 }
-
-TABLA_ROL_OLD = {
-    "PACIENTE": lambda user: hasattr(user, "paciente"),
-    "DOCTOR": lambda user: hasattr(user, "doctor"),
-    "ASISTENTE": lambda user: hasattr(user, "asistente"),
-    "SUPERDOCTOR": lambda user: hasattr(user, "susperdoctor"),
-    "ASISTENTE": lambda user: hasattr(user, "asistente"),
-    "ADMINISTRADOR": lambda user: hasattr(user, "administrador"),
-    "DEVELOPER": lambda user: hasattr(user, "developer"),
-}
-
 
 def GET_ROL(user):
     for rol, funcionList in TABLA_ROL.items():
