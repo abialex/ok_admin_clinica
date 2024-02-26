@@ -30,7 +30,6 @@ class Doctor(Persona):
 
 @receiver(pre_delete, sender=Ubicacion)
 def eliminar_ubicaciones_relacionadas(sender, instance, **kwargs):
-    print("ejecutando relacion eliminacion")
     # Eliminar todos los libros relacionados con el autor que se está eliminando
     instance.ubicacion_set.all().delete()
 

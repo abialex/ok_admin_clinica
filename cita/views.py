@@ -1,112 +1,87 @@
-from django.shortcuts import render
 from rest_framework import status
-from cita.models import CitaOcupada, CitaAgil, CitaTentativa, CitaCompleta
-from cita.serializers import CitaOcupadoCreateSerializer
-from session.models import User
+from cita.common import CitaModel
+from cita.models import CitaAgil, CitaCompleta, CitaOcupada, CitaTentativa
+from cita.serializers import CitaByFechaIdUbicacionIdDoctor
 from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.response import Response
-from django.db import transaction
-from psycopg2 import IntegrityError
-from django.contrib.auth.hashers import make_password
-import datetime
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from shared.utils.Global import ERROR_MESSAGE, GET_ROL, SECCUSSFULL_MESSAGE, RolEnum
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 
 # Create your views here.
-class CitaOcupadaViewSet(BaseModelViewSet):
-    queryset = CitaOcupada.objects.filter(is_active=True)
-    # serializer_class = DoctoCreateSerializer
+@api_view(["POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def cita_by_fecha_iddoctor_idubicacion(request):
+    result_serializer = CitaByFechaIdUbicacionIdDoctor(data=request.data)
+    if result_serializer.is_valid():
+        fechaHoraCita = result_serializer.data["fechaHoraCita"]
+        doctor_id = result_serializer.data["doctor_id"]
+        ubicacion_id = result_serializer.data["ubicacion_id"]
 
-    # def list(self, request, *args, **kwargs):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #     serializer = PacientesResponseSerializer(queryset, many=True)
-    #     custom_data = SECCUSSFULL_MESSAGE(
-    #         tipo=type(self).__name__,
-    #         message="lista de Pacientes",
-    #         url=request.get_full_path(),
-    #         data=serializer.data,
-    #     )
-    #     return Response(custom_data, status=status.HTTP_200_OK)
+        citas_ocupadas = CitaOcupada.objects.filter(
+            fechaHoraCita__date=fechaHoraCita,
+            doctor_id=doctor_id,
+            ubicacion_id=ubicacion_id,
+        )
 
-    # def retrieve(self, request, *args, **kwargs):
-    #     instance = self.get_object()
-    #     serializer = PacienteResponseSerializer(instance)
-    #     custom_response_data = SECCUSSFULL_MESSAGE(
-    #         tipo=type(int).__name__,
-    #         message="Paciente",
-    #         url=request.get_full_path(),
-    #         data=serializer.data,
-    #     )
-    #     return Response(custom_response_data, status=status.HTTP_200_OK)
+        citas_agiles = CitaAgil.objects.filter(
+            fechaHoraCita__date=fechaHoraCita,
+            doctor_id=doctor_id,
+            ubicacion_id=ubicacion_id,
+        )
 
-    def create(self, request, *args, **kwargs):
-        result_serializer = CitaOcupadoCreateSerializer(data=request.data)
-        if result_serializer.is_valid():
-            with transaction.atomic():
-                razonOcupado = (
-                    result_serializer.data["razonOcupado"]
-                    if result_serializer.data.get("razonOcupado")
-                    else None
-                )
-                razon = (
-                    result_serializer.data["razon"]
-                    if result_serializer.data.get("razon")
-                    else None
-                )
+        citas_tentativas = CitaTentativa.objects.filter(
+            fechaHoraCita__date=fechaHoraCita,
+            doctor_id=doctor_id,
+            ubicacion_id=ubicacion_id,
+        )
 
-                cita = CitaOcupada(
-                    razon=razon,
-                    doctor_id=result_serializer.data["doctor_id"],
-                    ubicacion_id=result_serializer.data["ubicacion_id"],
-                    fechaHoraCita=result_serializer.data["fechaHoraCita"],
-                    estado=result_serializer.data["estado"],
-                    razonOcupado=razonOcupado,
-                )
-                cita.created_by = self.request.user
-                cita.save()
+        citas_completas = CitaCompleta.objects.filter(
+            fechaHoraCita__date=fechaHoraCita,
+            doctor_id=doctor_id,
+            ubicacion_id=ubicacion_id,
+        )
 
-            custom_response_data = SECCUSSFULL_MESSAGE(
+        citas = []
+        citas_completas_mapeadas = list(
+            map(CitaModel.crear_cita_modelo, citas_completas)
+        )
+        citas_tentativas_mapeadas = list(
+            map(CitaModel.crear_cita_modelo, citas_tentativas)
+        )
+        citas_ocupadas_mapeadas = list(map(CitaModel.crear_cita_modelo, citas_ocupadas))
+
+        citas_agiles_mapeadas = list(map(CitaModel.crear_cita_modelo, citas_agiles))
+        citas = (
+            citas_completas_mapeadas
+            + citas_tentativas_mapeadas
+            + citas_ocupadas_mapeadas
+            + citas_agiles_mapeadas
+        )
+        citas = sorted(citas, key=lambda x: x["fechaHoraCita"])
+
+        return Response(
+            SECCUSSFULL_MESSAGE(
                 tipo=type(int).__name__,
-                message="Cita Ocupada creado",
+                message="Citas por Fecha, IdUbicacion y IdDoctor",
                 url=request.get_full_path(),
-                data=cita.id,
-            )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
-        else:
-            custom_response_data = ERROR_MESSAGE(
-                tipo=type(int).__name__,
-                message="error",
-                url=request.get_full_path(),
-                fields_errors=result_serializer.errors,
-            )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
-
-    # def update(self, request, *args, **kwargs):
-    #     result_serializer = PacienteUpdateSerializer(data=request.data)
-    #     if result_serializer.is_valid():
-    #         with transaction.atomic():
-    #             instance = self.get_object()
-    #             instance.nombres = result_serializer.data["nombres"]
-    #             instance.apellidos = result_serializer.data["apellidos"]
-    #             instance.dni = result_serializer.data["dni"]
-    #             instance.celular = result_serializer.data["celular"]
-    #             instance.fechaNacimiento = result_serializer.data["fechaNacimiento"]
-    #             instance.updated_at = datetime.datetime.now()
-    #             instance.updated_by = self.request.user
-    #             instance.save()
-
-    #         custom_response_data = SECCUSSFULL_MESSAGE(
-    #             tipo=type(int).__name__,
-    #             message="Paciente Modificado",
-    #             url=request.get_full_path(),
-    #             data=instance.id,
-    #         )
-    #         return Response(custom_response_data, status=status.HTTP_201_CREATED)
-    #     else:
-    #         custom_response_data = ERROR_MESSAGE(
-    #             tipo=type(int).__name__,
-    #             message="error",
-    #             url=request.get_full_path(),
-    #             fields_errors=result_serializer.errors,
-    #         )
-    #         return Response(custom_response_data, status=status.HTTP_201_CREATED)
+                data=citas,
+            ),
+            status=status.HTTP_200_OK,
+        )
+    else:
+        custom_response_data = ERROR_MESSAGE(
+            tipo=type(int).__name__,
+            message="error",
+            url=request.get_full_path(),
+            fields_errors=result_serializer.errors,
+        )
+        return Response(custom_response_data, status=status.HTTP_201_CREATED)
