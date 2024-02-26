@@ -28,7 +28,7 @@ class UserResponsiveSerializer(serializers.ModelSerializer):
         extra_data = self.context.get('extra_data', {})
         return extra_data.get('roles', None)
 
-
+# --- INICIO DEL BLOQUE: **** ---
 class UserResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -43,34 +43,13 @@ class UserFormSerializer(serializers.Serializer):
     celular = serializers.CharField(max_length=9)
     domicilio = serializers.CharField(max_length=150, required=False)
     fechaNacimiento = serializers.CharField(max_length=12)
-"""
-    def update(self, instance, validated_data):
 
-        instance.username=validated_data['username']
-        print(instance.pk)
-        instance.save()
-        print("debajo")
-        return instance
-
-    def create(self, validated_data):
-        with transaction.atomic():
-            try:
-                user_instance = User.objects.create(username=validated_data['username'])
-                validated_data['user_id'] = user_instance.pk
-                persona_instance = Doctor.objects.create(nombres=validated_data['nombres'],
-                                                      apellidos=validated_data['apellidos'],
-                                                      dni=validated_data['dni'],
-                                                      celular=validated_data['celular'],
-                                                       usuario_id=user_instance.pk,
-                                                         fechaNacimiento="1997-02-03")
-            except Exception as e:
-                print(e)
-
-        self.data["id"] = user_instance.pk
-        return self
-
-"""
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+# --- FIN DEL BLOQUE ---
+
+
+class TokenSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=120, required=True)

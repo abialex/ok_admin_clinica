@@ -1,9 +1,27 @@
-from django.urls import path
-from rest_framework.authtoken import views
-from recursos_humanos.routers import router
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+from shared.views import FotoPacienteViewSet
 
 app_name = "recursos_humanos"
 
-urlpatterns = []
+router = DefaultRouter()
+router.register(r"paciente_foto", FotoPacienteViewSet, basename="paciente_foto")
 
-urlpatterns += router.urls
+urlpatterns = [
+    path(
+        "asistentes/",
+        include("recursos_humanos.modules.asistente.urls", namespace="asistente"),
+    ),
+    path(
+        "doctores/",
+        include("recursos_humanos.modules.doctor.urls", namespace="doctor"),
+    ),
+    path(
+        "pacientes/",
+        include("recursos_humanos.modules.paciente.urls", namespace="paciente"),
+    ),
+]
+
+
+# urlpatterns += router.urls

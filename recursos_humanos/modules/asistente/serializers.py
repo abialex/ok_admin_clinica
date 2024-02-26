@@ -1,0 +1,38 @@
+from rest_framework import serializers
+
+from recursos_humanos.models import Asistente, Paciente, Persona, Doctor
+from recursos_humanos.serializers import PersonaSerializer
+from session.serializers import UserResponseSerializer
+
+
+# --- INICIO DEL BLOQUE: Asistente CRUDs ---
+class AsistenteCreateSerializer(PersonaSerializer):
+    especialidad = serializers.CharField(max_length=100, required=False)
+
+
+class AsistenteUpdateSerializer(PersonaSerializer):
+    id = serializers.IntegerField()
+    especialidad = serializers.CharField(max_length=100, required=False)
+
+
+# --- FIN DEL BLOQUE ---
+
+
+# --- INICIO DEL BLOQUE: Asistente Response ---
+class AsistenteResponseSerializer(serializers.ModelSerializer):
+    usuario = UserResponseSerializer()
+
+    class Meta:
+        model = Asistente
+        fields = "__all__"
+
+
+class AsistentesResponseSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="usuario.username", read_only=True)
+
+    class Meta:
+        model = Asistente
+        fields = ("id", "usuario_id", "username", "nombres", "apellidos")
+
+
+# --- FIN DEL BLOQUE ---

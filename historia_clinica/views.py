@@ -5,7 +5,7 @@ from historia_clinica.models import HistoriaClinica
 from historia_clinica.serializers import HistoriaClinicaSerializer, HistoriaClinicasSerializer
 from rest_framework.viewsets import ModelViewSet
 
-from shared.utils.Global import successfull_message
+from shared.utils.Global import SECCUSSFULL_MESSAGE
 from shared.utils.baseModel import BaseModelViewSet
 
 # Create your views here.
@@ -14,14 +14,9 @@ class HistoriaClinicaViewSet(BaseModelViewSet):
     serializer_class = HistoriaClinicaSerializer
 
     def list(self, request, *args, **kwargs):
-        # Obtener los datos de la consulta original
         queryset = self.filter_queryset(self.get_queryset())
-
-        # Serializar los datos
         serializer = HistoriaClinicasSerializer(queryset, many=True)
-
-        # Personalizar la respuesta según tus necesidades
-        custom_data = successfull_message(
+        custom_data = SECCUSSFULL_MESSAGE(
             tipo=type(self).__name__,
             message="lista de historias clinicas",
             url=request.get_full_path(),
@@ -31,18 +26,17 @@ class HistoriaClinicaViewSet(BaseModelViewSet):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        custom_response_data = successfull_message(
+        custom_response_data = SECCUSSFULL_MESSAGE(
             tipo=type(response).__name__,
             message="historia clinica creada",
             url=request.get_full_path(),
-            data=response.data["id"]
+            data=response.data["id"],
         )
-
         return Response(custom_response_data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        custom_response_data = successfull_message(
+        custom_response_data = SECCUSSFULL_MESSAGE(
             tipo=type(int).__name__,
             message="historia clinica modificada",
             url=request.get_full_path(),
@@ -53,7 +47,7 @@ class HistoriaClinicaViewSet(BaseModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        custom_response_data = successfull_message(
+        custom_response_data = SECCUSSFULL_MESSAGE(
             tipo=type(int).__name__,
             message="historia clinica",
             url=request.get_full_path(),
@@ -69,5 +63,3 @@ class HistoriaClinicaViewSet(BaseModelViewSet):
     def initialize_custom_logic(self):
         # Agrega lógica personalizada que deseas realizar al inicializar el ViewSet
         pass
-
-

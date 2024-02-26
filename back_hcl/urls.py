@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls.static import static
+from back_hcl import settings
 from back_hcl.middleware.djangoframework_handler import custom_404
 from django.contrib import admin
 from django.urls import path, include
@@ -28,4 +30,8 @@ urlpatterns = [
         "recursos_humanos/",
         include("recursos_humanos.urls", namespace="recursos_humanos"),
     ),
-]
+    path(
+        "citas/",
+        include("cita.urls", namespace="cita"),
+    ),
+]  # + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

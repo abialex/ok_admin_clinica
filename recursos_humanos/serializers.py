@@ -1,9 +1,12 @@
 from rest_framework import serializers
 
-from recursos_humanos.models import Persona, Doctor
+from recursos_humanos.models import Asistente, Paciente, Persona, Doctor
 from session.serializers import UserResponseSerializer
+from ubicacion.models import Ubicacion
+from ubicacion.serializers import UbicacionsResponseSerializer
 
 
+# --- INICIO DEL BLOQUE: BASE ---
 class PersonaSerializer(serializers.Serializer):
     dni = serializers.CharField(max_length=8)
     nombres = serializers.CharField(max_length=100)
@@ -13,26 +16,4 @@ class PersonaSerializer(serializers.Serializer):
     fechaNacimiento = serializers.CharField(max_length=12)
 
 
-class DoctoCreateSerializer(PersonaSerializer):
-    especialidad = serializers.CharField(max_length=100, required=False)
-
-
-class DoctorUpdateSerializer(PersonaSerializer):
-    id = serializers.IntegerField()
-    especialidad = serializers.CharField(max_length=100, required=False)
-
-
-class DoctorResponseSerializer(serializers.ModelSerializer):
-    usuario = UserResponseSerializer()
-
-    class Meta:
-        model = Doctor
-        fields = '__all__'
-
-
-class DoctorsResponseSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="usuario.username", read_only=True)
-
-    class Meta:
-        model = Doctor
-        fields = ("id", "usuario_id", "username", "nombres", "apellidos")
+# --- FIN DEL BLOQUE ---
