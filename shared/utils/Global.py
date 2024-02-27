@@ -35,7 +35,7 @@ def ERROR_MESSAGE(tipo, message, url, fields_errors=None):
     }
 
 
-def SECCUSSFULL_MESSAGE(tipo, message, url, data):
+def SUCCESS_MESSAGE(tipo, message, url, data):
     return {
         "tipo": tipo,
         "message": message,
@@ -76,6 +76,16 @@ TABLA_ROL = {
         lambda user: user.developer,
     ],
 }
+
+EXCLUDE_ATTR = (
+    "created_at",
+    "updated_at",
+    "is_active",
+    "is_deleted",
+    "created_by",
+    "updated_by",
+    "notes",
+)
 
 def GET_ROL(user):
     for rol, funcionList in TABLA_ROL.items():

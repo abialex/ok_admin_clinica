@@ -3,6 +3,7 @@ from rest_framework import serializers
 from recursos_humanos.models import Doctor
 from recursos_humanos.serializers import PersonaSerializer
 from session.serializers import UserResponseSerializer
+from shared.utils.Global import EXCLUDE_ATTR
 from ubicacion.models import Ubicacion
 from ubicacion.serializers import UbicacionsResponseSerializer
 
@@ -33,7 +34,7 @@ class DoctorResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = "__all__"
+        exclude = EXCLUDE_ATTR
 
 
 class DoctorsResponseSerializer(serializers.ModelSerializer):

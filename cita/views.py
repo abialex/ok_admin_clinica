@@ -2,7 +2,7 @@ from rest_framework import status
 from cita.common import CitaModel
 from cita.models import Cita, CitaAgil, CitaCompleta, CitaOcupada, CitaTentativa
 from cita.serializers import CitaByFechaIdUbicacionIdDoctorSerializer
-from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE, STRING
+from shared.utils.Global import SUCCESS_MESSAGE, STRING
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.response import Response
 from rest_framework.decorators import (
@@ -10,7 +10,6 @@ from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
 )
-from shared.utils.Global import ERROR_MESSAGE, GET_ROL, SECCUSSFULL_MESSAGE, RolEnum
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from shared.utils.decoradores import validar_serializer
@@ -21,10 +20,10 @@ from shared.utils.decoradores import validar_serializer
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @validar_serializer(serializer=CitaByFechaIdUbicacionIdDoctorSerializer)
-def cita_by_fecha_iddoctor_idubicacion(request, result_serializer):
-    fechaHoraCita = result_serializer.data["fechaHoraCita"]
-    doctor_id = result_serializer.data["doctor_id"]
-    ubicacion_id = result_serializer.data["ubicacion_id"]
+def cita_by_fecha_iddoctor_idubicacion(request, data):
+    fechaHoraCita = data["fechaHoraCita"]
+    doctor_id = data["doctor_id"]
+    ubicacion_id = data["ubicacion_id"]
 
     citas_ocupadas = CitaOcupada.objects.filter(
         fechaHoraCita__date=fechaHoraCita,
@@ -54,7 +53,6 @@ def cita_by_fecha_iddoctor_idubicacion(request, result_serializer):
     citas_completas_mapeadas = list(map(CitaModel.crear_cita_modelo, citas_completas))
     citas_tentativas_mapeadas = list(map(CitaModel.crear_cita_modelo, citas_tentativas))
     citas_ocupadas_mapeadas = list(map(CitaModel.crear_cita_modelo, citas_ocupadas))
-
     citas_agiles_mapeadas = list(map(CitaModel.crear_cita_modelo, citas_agiles))
     citas = (
         citas_completas_mapeadas
@@ -65,7 +63,7 @@ def cita_by_fecha_iddoctor_idubicacion(request, result_serializer):
     citas = sorted(citas, key=lambda x: x[STRING(Cita.fechaHoraCita)])
 
     return Response(
-        SECCUSSFULL_MESSAGE(
+        SUCCESS_MESSAGE(
             tipo=type(citas).__name__,
             message="Citas por Fecha, IdUbicacion y IdDoctor",
             url=request.get_full_path(),

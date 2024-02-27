@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from cita.choices import EstadoCita
+from cita.models import CitaTentativa
 from cita.serializers import CitaSerializer
 
 from recursos_humanos.models import Asistente, Paciente, Persona, Doctor
 from session.serializers import UserResponseSerializer
+from shared.utils.Global import EXCLUDE_ATTR
 from ubicacion.models import Ubicacion
 
 
@@ -13,29 +15,44 @@ class CitaTentativaCreateSerializer(CitaSerializer):
     celular = serializers.CharField(max_length=9, required=False)
 
 
-# class DoctorUpdateSerializer(PersonaSerializer):
-#     id = serializers.IntegerField()
-#     especialidad = serializers.CharField(max_length=100, required=False)
+class CitaTentativaUpdateSerializer(CitaSerializer):
+    id = serializers.IntegerField()
+    datosPaciente = serializers.CharField(max_length=150, required=True)
+    celular = serializers.CharField(max_length=9, required=False)
 
 
 # # --- FIN DEL BLOQUE ---
 
 
-# # --- INICIO DEL BLOQUE: Doctor Response ---
-# class DoctorResponseSerializer(serializers.ModelSerializer):
-#     usuario = UserResponseSerializer()
+# --- INICIO DEL BLOQUE: Doctor Response ---
+class CitaTentativaResponseSerializer(serializers.ModelSerializer):
+    doctor_id = serializers.SerializerMethodField()
+    doctor = serializers.SerializerMethodField()
+    ubicacion_id = serializers.SerializerMethodField()
+    ubicacion = serializers.SerializerMethodField()
 
-#     class Meta:
-#         model = Doctor
-#         fields = "__all__"
+    class Meta:
+        model = CitaTentativa
+        exclude = EXCLUDE_ATTR
+
+    def get_doctor_id(self, instance: CitaTentativa):
+        return instance.doctor.id
+
+    def get_doctor(self, instance: CitaTentativa):
+        return instance.doctor.nombres
+
+    def get_ubicacion_id(self, instance: CitaTentativa):
+        return instance.ubicacion.id
+
+    def get_ubicacion(self, instance: CitaTentativa):
+        return instance.ubicacion.nombre
 
 
-# class DoctorsResponseSerializer(serializers.ModelSerializer):
-#     username = serializers.CharField(source="usuario.username", read_only=True)
+class CitaTentativasResponseSerializer(serializers.ModelSerializer):
 
-#     class Meta:
-#         model = Doctor
-#         fields = ("id", "usuario_id", "username", "nombres", "apellidos")
+    class Meta:
+        model = CitaTentativa
+        exclude = ("doctor", "ubicacion") + EXCLUDE_ATTR
 
 
 # # --- FIN DEL BLOQUE ---

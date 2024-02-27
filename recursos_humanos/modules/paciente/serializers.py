@@ -2,6 +2,7 @@ from rest_framework import serializers
 from recursos_humanos.models import Asistente, Paciente
 from recursos_humanos.serializers import PersonaSerializer
 from session.serializers import UserResponseSerializer
+from shared.utils.Global import EXCLUDE_ATTR
 
 
 # --- INICIO DEL BLOQUE: Paciente CRUDs ---
@@ -23,7 +24,7 @@ class PacienteResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Paciente
-        fields = "__all__"
+        exclude = EXCLUDE_ATTR
 
 
 class PacientesResponseSerializer(serializers.ModelSerializer):

@@ -1,96 +1,69 @@
+import datetime
 from rest_framework import status
 from cita.models import CitaCompleta
-from cita.modules.cita_completa.serializers import CitaCompletaCreateSerializer
-from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE, STRING
+from cita.modules.cita_completa.serializers import (
+    CitaCompletaCreateSerializer,
+    CitaCompletaResponseSerializer,
+    CitaCompletaUpdateSerializer,
+    CitaCompletasResponseSerializer,
+)
+from shared.utils.Global import ERROR_MESSAGE, SUCCESS_MESSAGE, STRING
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.response import Response
 from django.db import transaction
 
-from shared.utils.decoradores import validar_serializer
+from shared.utils.decoradores import validar_data_serializer, validar_serializer
 
 
 # Create your views here.
 class CitaCompletaViewSet(BaseModelViewSet):
-    queryset = CitaCompleta.objects.filter(is_active=True)
+    queryset = CitaCompleta.objects.filter(is_deleted=False)
     # serializer_class = DoctoCreateSerializer
 
-    # def list(self, request, *args, **kwargs):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #     serializer = PacientesResponseSerializer(queryset, many=True)
-    #     custom_data = SECCUSSFULL_MESSAGE(
-    #         tipo=type(self).__name__,
-    #         message="lista de Pacientes",
-    #         url=request.get_full_path(),
-    #         data=serializer.data,
-    #     )
-    #     return Response(custom_data, status=status.HTTP_200_OK)
-
-    # def retrieve(self, request, *args, **kwargs):
-    #     instance = self.get_object()
-    #     serializer = PacienteResponseSerializer(instance)
-    #     custom_response_data = SECCUSSFULL_MESSAGE(
-    #         tipo=type(int).__name__,
-    #         message="Paciente",
-    #         url=request.get_full_path(),
-    #         data=serializer.data,
-    #     )
-    #     return Response(custom_response_data, status=status.HTTP_200_OK)
-    @validar_serializer(serializer=CitaCompletaCreateSerializer)
-    def create(self, request, result_serializer, *args, **kwargs):
-        with transaction.atomic():
-            razon = (
-                result_serializer.data[STRING(CitaCompleta.razon)]
-                if result_serializer.data.get(STRING(CitaCompleta.razon))
-                else None
-            )
-
-            cita = CitaCompleta(
-                razon=razon,
-                doctor_id=result_serializer.data[STRING(CitaCompleta.doctor_id)],
-                ubicacion_id=result_serializer.data[STRING(CitaCompleta.ubicacion_id)],
-                fechaHoraCita=result_serializer.data[
-                    STRING(CitaCompleta.fechaHoraCita)
-                ],
-                estado=result_serializer.data[STRING(CitaCompleta.estado)],
-                paciente_id=result_serializer.data[STRING(CitaCompleta.paciente_id)],
-            )
-            cita.created_by = self.request.user
-            cita.save()
-
-        custom_response_data = SECCUSSFULL_MESSAGE(
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = CitaCompletasResponseSerializer(queryset, many=True)
+        custom_data = SUCCESS_MESSAGE(
             tipo=self.queryset.model.__name__,
-            message=self.queryset.model.__name__ + " creado",
+            message=self.queryset.model.__name__ + " list",
             url=request.get_full_path(),
-            data=cita.id,
+            data=serializer.data,
         )
-        return Response(custom_response_data, status=status.HTTP_201_CREATED)
+        return Response(custom_data, status=status.HTTP_200_OK)
 
-    # def update(self, request, *args, **kwargs):
-    #     result_serializer = PacienteUpdateSerializer(data=request.data)
-    #     if result_serializer.is_valid():
-    #         with transaction.atomic():
-    #             instance = self.get_object()
-    #             instance.nombres = result_serializer.data["nombres"]
-    #             instance.apellidos = result_serializer.data["apellidos"]
-    #             instance.dni = result_serializer.data["dni"]
-    #             instance.celular = result_serializer.data["celular"]
-    #             instance.fechaNacimiento = result_serializer.data["fechaNacimiento"]
-    #             instance.updated_at = datetime.datetime.now()
-    #             instance.updated_by = self.request.user
-    #             instance.save()
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = CitaCompletaResponseSerializer(instance)
+        custom_response_data = SUCCESS_MESSAGE(
+            tipo=self.queryset.model.__name__,
+            message=self.queryset.model.__name__ + " by-id",
+            url=request.get_full_path(),
+            data=serializer.data,
+        )
+        return Response(custom_response_data, status=status.HTTP_200_OK)
 
-    #         custom_response_data = SECCUSSFULL_MESSAGE(
-    #             tipo=type(int).__name__,
-    #             message="Paciente Modificado",
-    #             url=request.get_full_path(),
-    #             data=instance.id,
-    #         )
-    #         return Response(custom_response_data, status=status.HTTP_201_CREATED)
-    #     else:
-    #         custom_response_data = ERROR_MESSAGE(
-    #             tipo=type(int).__name__,
-    #             message="error",
-    #             url=request.get_full_path(),
-    #             fields_errors=result_serializer.errors,
-    #         )
-    #         return Response(custom_response_data, status=status.HTTP_201_CREATED)
+    @validar_data_serializer(
+        from_dict=CitaCompleta.from_dict, serializer=CitaCompletaCreateSerializer
+    )
+    def create(self, request, cls):
+        with transaction.atomic():
+            cls.created_by = self.request.user
+            cls.save()
+        return cls.id, "creado"
+
+    @validar_data_serializer(
+        from_dict=CitaCompleta.from_dict, serializer=CitaCompletaUpdateSerializer
+    )
+    def update(self, request, cls: CitaCompleta, pk):
+        with transaction.atomic():
+            instance = self.get_object()
+            instance.razon = cls.razon
+            instance.doctor_id = cls.doctor.id
+            instance.ubicacion_id = cls.ubicacion.id
+            instance.fechaHoraCita = cls.fechaHoraCita
+            instance.paciente_id = cls.paciente.id
+            instance.estado = cls.estado
+            instance.updated_at = datetime.datetime.now()
+            instance.updated_by = self.request.user
+            instance.save()
+        return instance.id, "modificado"
