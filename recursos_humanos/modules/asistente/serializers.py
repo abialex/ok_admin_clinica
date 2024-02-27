@@ -3,12 +3,16 @@ from rest_framework import serializers
 from recursos_humanos.models import Asistente, Paciente, Persona, Doctor
 from recursos_humanos.serializers import PersonaSerializer
 from session.serializers import UserResponseSerializer
+from shared.utils.Global import EXCLUDE_ATTR
+from ubicacion.models import Ubicacion
 
 
 # --- INICIO DEL BLOQUE: Asistente CRUDs ---
 class AsistenteCreateSerializer(PersonaSerializer):
     especialidad = serializers.CharField(max_length=100, required=False)
-
+    ubicacion_id = serializers.PrimaryKeyRelatedField(
+        queryset=Ubicacion.objects.filter(is_active=True)
+    )
 
 class AsistenteUpdateSerializer(PersonaSerializer):
     id = serializers.IntegerField()
@@ -24,7 +28,8 @@ class AsistenteResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Asistente
-        fields = "__all__"
+        exclude = EXCLUDE_ATTR
+
 
 
 class AsistentesResponseSerializer(serializers.ModelSerializer):
