@@ -15,7 +15,6 @@ from recursos_humanos.serializers import PersonaSerializer
 
 # from core.models import UserRol, UserSede
 # from core.serializers import UserRolSerializer, UserSedeSerializer
-from session.models import UserTokenFirebase
 from session.serializers import *
 from shared.utils.Global import (
     DIAS_TOKEN,
@@ -30,6 +29,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
 # from Utils import create_response_succes, create_response_error
+
 
 class UserViewSet(BaseModelViewSet):
     queryset = User.objects.filter(is_active=True)
@@ -133,6 +133,16 @@ class AuthTokenLogin(ObtainAuthToken):
                 created = True
                 diasToken = DIAS_TOKEN
             rol, persona = GET_ROL(user)
+            if persona is None:
+                return Response(
+                    data=ERROR_MESSAGE(
+                        tipo="User",
+                        message="No tien un ROL asignado",
+                        url=request.get_full_path(),
+                        fields_errors={},
+                    ),
+                    status=400,
+                )
             response = SUCCESS_MESSAGE(
                 tipo=type(user).__name__,
                 message="Login",

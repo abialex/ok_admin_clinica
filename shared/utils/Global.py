@@ -6,6 +6,8 @@ from shared.models import ErrorLog
 
 
 DIAS_TOKEN = 7
+
+
 class RolEnum(Enum):
     DEVELOPER = 0
     ADMINISTRADOR = 1
@@ -87,6 +89,7 @@ EXCLUDE_ATTR = (
     "notes",
 )
 
+
 def GET_ROL(user):
     for rol, funcionList in TABLA_ROL.items():
         # lambda user tiene el atributo rol
@@ -94,7 +97,8 @@ def GET_ROL(user):
             # lambda user devuelve el objeto rol
             return rol, funcionList[1](user)
 
-    return "Sin rol", user
+    return None, None
+
 
 TABLA_TIPO_CITA = {
     CitaEnum.OCUPADA: [
