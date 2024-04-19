@@ -5,3 +5,4 @@ class EstadoCita(models.IntegerChoices):
     CONFIRMADA = 1, "Confirmada"
     PENDIENTE = 2, "Pendiente"
     CANCELADA = 3, "Cancelada"
+    ATENDIENDO = 4, "Atendiendo"

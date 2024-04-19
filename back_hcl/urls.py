@@ -13,11 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.conf.urls.static import static
 from back_hcl import settings
 from back_hcl.middleware.djangoframework_handler import custom_404
 from django.contrib import admin
 from django.urls import path, include
+
 handler404 = custom_404
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -33,5 +35,9 @@ urlpatterns = [
     path(
         "citas/",
         include("cita.urls", namespace="cita"),
+    ),
+    path(
+        "service_external/",
+        include("services_external.urls", namespace="service_external"),
     ),
 ]  # + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
