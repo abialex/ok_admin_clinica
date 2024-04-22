@@ -2,7 +2,15 @@ from django.db import models
 
 
 class EstadoCita(models.IntegerChoices):
-    CONFIRMADA = 1, "Confirmada"
-    PENDIENTE = 2, "Pendiente"
-    CANCELADA = 3, "Cancelada"
-    ATENDIENDO = 4, "Atendiendo"
+    PENDIENTE = 1, "Pendiente"
+    CONFIRMADO = 2, "Confirmado"
+    ATENDIENDO = 3, "Atendiendo"
+    CONCLUIDO = 4, "Concluido"
+    CANCELADO = 5, "Cancelado"
+
+
+class TipoCita(models.IntegerChoices):
+    TENTATIVA = 1, "Tentativa"
+    AGIL = 2, "Agil"
+    COMPLETA = 3, "Completa"
+    OCUPADO = 4, "Ocupado"

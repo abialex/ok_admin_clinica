@@ -42,20 +42,20 @@ def validar_data_serializer(from_dict, serializer):
                 # agregando el nuevo argumento
                 args = args + (model,)
 
-                data, crudString = funcion(*args, **kwargs)
+                data, rptaOk = funcion(*args, **kwargs)
                 custom_response_data = SUCCESS_MESSAGE(
                     tipo=type(model).__name__,
-                    message=type(model).__name__ + " " + crudString,
+                    message=type(model).__name__
+                    + " "
+                    + (
+                        "Creado" if rptaOk == status.HTTP_201_CREATED else "Actualizado"
+                    ),
                     url=request.get_full_path(),
                     data=data,
                 )
                 return Response(
                     custom_response_data,
-                    status=(
-                        status.HTTP_201_CREATED
-                        if crudString == "creado"
-                        else status.HTTP_200_OK
-                    ),
+                    status=(rptaOk),
                 )
 
             else:
