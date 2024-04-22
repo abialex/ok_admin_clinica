@@ -65,7 +65,7 @@ class DoctorViewSet(BaseModelViewSet):
     def create(self, request, data, *args, **kwargs):
         with transaction.atomic():
 
-            username = assignUsername(dni=data[STRING(Doctor.dni)])
+            username = assignUsername(dni=data[STRING(Doctor.dni)], prefix="slg_")
             contrasenia = data[STRING(Doctor.dni)]
             if User.objects.filter(username=username).__len__() > 0:
                 raise IntegrityError("Este username ya existe.")
