@@ -1,7 +1,6 @@
 import cita
 from cita.choices import EstadoCita
-from cita.models import Cita, CitaAgil, CitaCompleta, CitaOcupada, CitaTentativa
-from shared.utils.Global import GET_ESTADO_CITA, GET_TIPO_CITA, CitaEnum
+from shared.utils.Global import CitaEnum
 
 
 class CitaModel:
@@ -50,36 +49,36 @@ class CitaModel:
             "datosPaciente": self.datosPaciente,
         }
 
-    def crear_cita_modelo(item):
-        estadoString = GET_ESTADO_CITA(item.estado)
-        tipo = GET_TIPO_CITA(item)
-        match tipo:
-            case CitaEnum.OCUPADA:
-                datosPaciente = None
-                celular = None
-            case CitaEnum.TENTATIVA:
-                datosPaciente = item.datosPaciente
-                celular = item.celular
-            case CitaEnum.AGIL:
-                datosPaciente = item.datosPaciente
-                celular = item.celular
-            case CitaEnum.COMPLETA:
-                datosPaciente = item.paciente.nombres + " " + item.paciente.apellidos
-                celular = item.paciente.celular
-            case _:
-                raise ValueError("No se definió la cita: " + tipo.name)
+    # def crear_cita_modelo(item):
+    #     estadoString = GET_ESTADO_CITA(item.estado)
+    #     tipo = GET_TIPO_CITA(item)
+    #     match tipo:
+    #         case CitaEnum.OCUPADA:
+    #             datosPaciente = None
+    #             celular = None
+    #         case CitaEnum.TENTATIVA:
+    #             datosPaciente = item.datosPaciente
+    #             celular = item.celular
+    #         case CitaEnum.AGIL:
+    #             datosPaciente = item.datosPaciente
+    #             celular = item.celular
+    #         case CitaEnum.COMPLETA:
+    #             datosPaciente = item.paciente.nombres + " " + item.paciente.apellidos
+    #             celular = item.paciente.celular
+    #         case _:
+    #             raise ValueError("No se definió la cita: " + tipo.name)
 
-        return CitaModel(
-            id=item.id,
-            razon=item.razon,
-            doctor_id=item.doctor.id,
-            ubicacion=item.ubicacion.nombre,
-            ubicacion_id=item.ubicacion.id,
-            fechaHoraCita=item.fechaHoraCita.strftime("%Y-%m-%d %H:%M:%S"),
-            estado=item.estado,
-            estadoString=estadoString,
-            tipo=tipo.value,
-            tipoString=tipo.name,
-            celular=celular,
-            datosPaciente=datosPaciente,
-        ).to_dict()
+    #     return CitaModel(
+    #         id=item.id,
+    #         razon=item.razon,
+    #         doctor_id=item.doctor.id,
+    #         ubicacion=item.ubicacion.nombre,
+    #         ubicacion_id=item.ubicacion.id,
+    #         fechaHoraCita=item.fechaHoraCita.strftime("%Y-%m-%d %H:%M:%S"),
+    #         estado=item.estado,
+    #         estadoString=estadoString,
+    #         tipo=tipo.value,
+    #         tipoString=tipo.name,
+    #         celular=celular,
+    #         datosPaciente=datosPaciente,
+    #     ).to_dict()

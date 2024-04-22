@@ -1,7 +1,7 @@
 import traceback
 from enum import Enum
 from cita.choices import EstadoCita
-from cita.models import CitaAgil, CitaCompleta, CitaOcupada, CitaTentativa
+
 from shared.models import ErrorLog
 
 
@@ -100,38 +100,38 @@ def GET_ROL(user):
     return None, None
 
 
-TABLA_TIPO_CITA = {
-    CitaEnum.OCUPADA: [
-        lambda cita: isinstance(cita, CitaOcupada),
-        lambda cita: cita.razonOcupado,
-    ],
-    CitaEnum.TENTATIVA: [
-        lambda cita: isinstance(cita, CitaTentativa),
-        lambda cita: "Estado: "
-        + next(
-            filter(lambda miembro: miembro.value == cita.estado, EstadoCita),
-            None,
-        ).name,
-    ],
-    CitaEnum.AGIL: [
-        lambda cita: isinstance(cita, CitaAgil),
-        lambda cita: cita.datosPaciente,
-    ],
-    CitaEnum.COMPLETA: [
-        lambda cita: isinstance(cita, CitaCompleta),
-        lambda cita: cita.paciente.id,
-    ],
-}
+# TABLA_TIPO_CITA = {
+#     CitaEnum.OCUPADA: [
+#         lambda cita: isinstance(cita, CitaOcupada),
+#         lambda cita: cita.razonOcupado,
+#     ],
+#     CitaEnum.TENTATIVA: [
+#         lambda cita: isinstance(cita, CitaTentativa),
+#         lambda cita: "Estado: "
+#         + next(
+#             filter(lambda miembro: miembro.value == cita.estado, EstadoCita),
+#             None,
+#         ).name,
+#     ],
+#     CitaEnum.AGIL: [
+#         lambda cita: isinstance(cita, CitaAgil),
+#         lambda cita: cita.datosPaciente,
+#     ],
+#     CitaEnum.COMPLETA: [
+#         lambda cita: isinstance(cita, CitaCompleta),
+#         lambda cita: cita.paciente.id,
+#     ],
+# }
 
 
-def GET_TIPO_CITA(cita):
-    for tipo, funcionList in TABLA_TIPO_CITA.items():
-        # lambda user tiene el atributo rol
-        if funcionList[0](cita):
-            # lambda user devuelve el objeto rol
-            return tipo  # , funcionList[1](cita)
+# def GET_TIPO_CITA(cita):
+#     for tipo, funcionList in TABLA_TIPO_CITA.items():
+#         # lambda user tiene el atributo rol
+#         if funcionList[0](cita):
+#             # lambda user devuelve el objeto rol
+#             return tipo  # , funcionList[1](cita)
 
-    return "Sin rol"  # , cita
+#     return "Sin rol"  # , cita
 
 
 def GET_ESTADO_CITA(estado):
