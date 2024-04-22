@@ -28,12 +28,6 @@ class Doctor(Persona):
     # Otros campos específicos de doctores
 
 
-@receiver(pre_delete, sender=Ubicacion)
-def eliminar_ubicaciones_relacionadas(sender, instance, **kwargs):
-    # Eliminar todos los libros relacionados con el autor que se está eliminando
-    instance.ubicacion_set.all().delete()
-
-
 class Asistente(Persona):
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE, null=False)
     rol = models.CharField(max_length=50)

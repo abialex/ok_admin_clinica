@@ -14,6 +14,7 @@ from recursos_humanos.modules.doctor.serializers import (
     DoctorUpdateSerializer,
     DoctorsResponseSerializer,
 )
+from recursos_humanos.views import assignUsername
 from session.models import User
 from shared.utils.Global import (
     ERROR_MESSAGE,
@@ -63,7 +64,8 @@ class DoctorViewSet(BaseModelViewSet):
     @validar_serializer(serializer=DoctorCreateSerializer)
     def create(self, request, data, *args, **kwargs):
         with transaction.atomic():
-            username = "slg_" + data[STRING(Doctor.dni)][:2]
+
+            username = assignUsername(dni=data[STRING(Doctor.dni)])
             contrasenia = data[STRING(Doctor.dni)]
             if User.objects.filter(username=username).__len__() > 0:
                 raise IntegrityError("Este username ya existe.")

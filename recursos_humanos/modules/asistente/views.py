@@ -9,6 +9,7 @@ from recursos_humanos.modules.asistente.serializers import (
     AsistenteUpdateSerializer,
     AsistentesResponseSerializer,
 )
+from recursos_humanos.views import assignUsername
 from session.models import User
 from shared.utils.Global import ERROR_MESSAGE, SUCCESS_MESSAGE, STRING
 from rest_framework import status
@@ -51,7 +52,7 @@ class AsistenteViewSet(BaseModelViewSet):
     @validar_serializer(serializer=AsistenteCreateSerializer)
     def create(self, request, data, *args, **kwargs):
         with transaction.atomic():
-            username = "slg_a_" + data[STRING(Asistente.dni)][:2]
+            username = assignUsername(dni=data[STRING(Doctor.dni)])
             contrasenia = data[STRING(Asistente.dni)]
             if User.objects.filter(username=username).__len__() > 0:
                 raise IntegrityError("Este username ya existe.")
