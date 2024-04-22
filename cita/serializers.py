@@ -48,7 +48,7 @@ class CitaOcupadoCreateSerializer(CitaSerializer):
     razonOcupado = serializers.CharField(max_length=150, required=False)
     tipo = serializers.ChoiceField(choices=TipoCita.choices, default=TipoCita.OCUPADO)
     estado = serializers.ChoiceField(
-        choices=EstadoCita.choices, default=EstadoCita.CONCLUIDO
+        choices=EstadoCita.choices, default=EstadoCita.VALIDADO
     )
 
 
@@ -60,7 +60,7 @@ class CitaOcupadoUpdateSerializer(CitaSerializer):
     )
     razonOcupado = serializers.CharField(max_length=150, required=False)
     estado = serializers.ChoiceField(
-        choices=EstadoCita.choices, default=EstadoCita.CONCLUIDO
+        choices=EstadoCita.choices, default=EstadoCita.VALIDADO
     )
 
 

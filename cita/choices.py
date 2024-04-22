@@ -5,8 +5,9 @@ class EstadoCita(models.IntegerChoices):
     PENDIENTE = 1, "Pendiente"
     CONFIRMADO = 2, "Confirmado"
     ATENDIENDO = 3, "Atendiendo"
-    CONCLUIDO = 4, "Concluido"
-    CANCELADO = 5, "Cancelado"
+    FINALIZADO = 4, "Finalizado"
+    VALIDADO = 5, "Validado"
+    CANCELADO = 6, "Cancelado"
 
 
 class TipoCita(models.IntegerChoices):

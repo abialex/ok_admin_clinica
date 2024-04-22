@@ -6,6 +6,10 @@ from rest_framework.routers import DefaultRouter
 from cita.views import (
     CitaViewSet,
     cita_by_fecha_iddoctor_idubicacion,
+    cita_confirmar,
+    cita_finalizar,
+    cita_iniciar,
+    cita_validar,
     create_cita_agil,
     update_cita_agil,
     create_cita_ocupado,
@@ -22,6 +26,11 @@ urlpatterns = [
     path("cita_agil_update", update_cita_agil),
     path("cita_ocupado_create", create_cita_ocupado),
     path("cita_ocupado_update", update_cita_ocupado),
+    path("cita_ocupado_update", update_cita_ocupado),
+    path("cita_confirmar/by-id", cita_confirmar),
+    path("cita_iniciar/by-id", cita_iniciar),
+    path("cita_finalizar/by-id", cita_finalizar),
+    path("cita_validar/by-id", cita_validar),
     # path(
     #     "citas_completas/",
     #     include("cita.modules.cita_completa.urls", namespace="completa"),

@@ -1,6 +1,8 @@
+import datetime
 from enum import Enum
 import json
 from rest_framework import status
+from cita.choices import EstadoCita
 from cita.common import CitaModel
 from cita.models import Cita  # , CitaAgil, CitaCompleta, CitaOcupada, CitaTentativa
 from cita.serializers import (
@@ -13,7 +15,7 @@ from cita.serializers import (
     CitaSerializer,
     CitasResponseSerializer,
 )
-from shared.utils.Global import SUCCESS_MESSAGE, STRING
+from shared.utils.Global import ERROR_MESSAGE, SUCCESS_MESSAGE, STRING
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.response import Response
 from rest_framework.decorators import (
@@ -101,6 +103,7 @@ class CitaViewSet(BaseModelViewSet):
 @permission_classes([IsAuthenticated])
 @validar_data_serializer(from_dict=Cita.from_dict, serializer=CitaAgilCreateSerializer)
 def create_cita_agil(request, data: Cita):
+    # base
     data.created_by = request.user
     data.save()
     print(status.HTTP_201_CREATED)
@@ -133,6 +136,7 @@ def update_cita_agil(request, data: Cita):
     from_dict=Cita.from_dict, serializer=CitaOcupadoCreateSerializer
 )
 def create_cita_ocupado(request, data: Cita):
+    # base
     data.created_by = request.user
     data.save()
     return data.id, status.HTTP_201_CREATED
@@ -153,5 +157,149 @@ def update_cita_ocupado(request, data: Cita):
     cita.save()
     # base
     cita.updated_by = request.user
-    print(status.HTTP_200_OK)
     return data.id, status.HTTP_200_OK
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def cita_confirmar(request):
+    cita_id = request.GET.get("id")
+    citas = Cita.objects.filter(
+        id=cita_id, is_deleted=False, estado=EstadoCita.PENDIENTE
+    )
+    if citas.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=citas.model.__name__,
+                message="La cita pendiente no se ha encontrado",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "id de la cita no existe"},
+            ),
+            status=status.HTTP_200_OK,
+        )
+    cita = citas[0]
+    cita.estado = EstadoCita.CONFIRMADO
+    cita.fechaConfirmacion = datetime.datetime.now()
+    # base
+    cita.updated_by = request.user
+
+    cita.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(cita).__name__,
+            message="Cita Confirmada",
+            url=request.get_full_path(),
+            data=True,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def cita_iniciar(request):
+    cita_id = request.GET.get("id")
+    citas = Cita.objects.filter(
+        id=cita_id, is_deleted=False, estado=EstadoCita.CONFIRMADO
+    )
+    if citas.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=citas.model.__name__,
+                message="La cita confirmada no se ha encontrado",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "id de la cita no existe"},
+            ),
+            status=status.HTTP_200_OK,
+        )
+    cita = citas[0]
+    cita.estado = EstadoCita.ATENDIENDO
+    cita.fechaInicio = datetime.datetime.now()
+    # base
+    cita.updated_by = request.user
+    cita.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(cita).__name__,
+            message="Cita Iniciada",
+            url=request.get_full_path(),
+            data=True,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def cita_finalizar(request):
+    cita_id = request.GET.get("id")
+    citas = Cita.objects.filter(
+        id=cita_id, is_deleted=False, estado=EstadoCita.ATENDIENDO
+    )
+    if citas.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=citas.model.__name__,
+                message="La cita atendida no se ha encontrado",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "id de la cita no existe"},
+            ),
+            status=status.HTTP_200_OK,
+        )
+    cita = citas[0]
+    cita.estado = EstadoCita.FINALIZADO
+    cita.fechaFin = datetime.datetime.now()
+    # base
+    cita.updated_by = request.user
+    cita.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(cita).__name__,
+            message="Cita Iniciada",
+            url=request.get_full_path(),
+            data=True,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def cita_validar(request):
+    cita_id = request.GET.get("id")
+    citas = Cita.objects.filter(
+        id=cita_id, is_deleted=False, estado=EstadoCita.FINALIZADO
+    )
+    if citas.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=citas.model.__name__,
+                message="La cita finalizada no se ha encontrado",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "id de la cita no existe"},
+            ),
+            status=status.HTTP_200_OK,
+        )
+    cita = citas[0]
+    cita.estado = EstadoCita.VALIDADO
+    cita.fechaValidacion = datetime.datetime.now()
+    # base
+    cita.updated_by = request.user
+    cita.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(cita).__name__,
+            message="Cita Iniciada",
+            url=request.get_full_path(),
+            data=True,
+        ),
+        status=status.HTTP_200_OK,
+    )
