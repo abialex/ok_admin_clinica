@@ -9,6 +9,7 @@ from cita.views import (
     cita_confirmar,
     cita_finalizar,
     cita_iniciar,
+    cita_list_filter,
     cita_validar,
     create_cita_agil,
     update_cita_agil,
@@ -44,5 +45,6 @@ urlpatterns = [
     #     include("cita.modules.cita_tentativa.urls", namespace="tentativa"),
     # ),
     path(r"citas-by-fecha-iddoctor-idubicacion", cita_by_fecha_iddoctor_idubicacion),
+    path(r"citas-list-filter-by-iddoctor/", cita_list_filter),
 ]
 urlpatterns += router.urls
