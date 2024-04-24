@@ -16,33 +16,44 @@ class NotFound(APIException):
     def __init__(self, detail=None):
         self.detail = detail or self.default_detail
 
+
 def custom_exception_handler(exc, context):
     try:
         exception_class = exc.__class__.__name__
         handlers = {
-            "Http404": {"Http404": "no se encontró el objeto."},
-            "MethodNotAllowed": {"MethodNotAllowed": "método no soportado"},
-            "AuthenticationFailed": {"token": "Token inválido."},
-            "NotAuthenticated": {
-                "authentication": "An authorization token is not provided."
-            },
             "InvalidToken": {"token": "An authorization token is not valid."},
             "IntegrityError": {"integrityError": exc.__str__()},
             "ValidationError": _handler_validation_error,
             # Add more handlers as needed
         }
         res = exception_handler(exc, context)
+
         if "ValidationError" == exception_class:
-            message = handlers[exception_class](exc, context, res)
+            message = "Estos campos no están validados"
+            fields_errors = handlers[exception_class](exc, context, res)
+        elif "AuthenticationFailed" == exception_class:
+            message = "La sesión expiró"
+            fields_errors = {exception_class: str(exc)}
+        elif "Http404" == exception_class:
+            message = "No encontrado"
+            fields_errors = {exception_class: str(exc)}
+        elif "MethodNotAllowed" == exception_class:
+            message = "Método no soportado"
+            fields_errors = {exception_class: str(exc)}
+        elif "NotAuthenticated" == exception_class:
+            message = "No se proporcionaron las credenciales de autenticación"
+            fields_errors = {exception_class: str(exc)}
         else:
             # error no especificado
-            message = {exception_class: str(exc)}
+            message = "problema no definido"
+            fields_errors = {exception_class: str(exc)}
         LOGGING_SAVE(exc=exc, url=context["request"].path)
+
         return Response(
             data=ERROR_MESSAGE(
                 tipo=exception_class,
-                message="Problemas en el backend",
-                fields_errors=message,
+                message=message,
+                fields_errors=fields_errors,
                 url=context["request"].path,
             ),
             status=500 if res == None else res.status_code,
