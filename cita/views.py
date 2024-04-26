@@ -90,8 +90,8 @@ class CitaViewSet(BaseModelViewSet):
         instance.save()
         custom_response_data = SUCCESS_MESSAGE(
             tipo=self.queryset.model.__name__,
-            message=self.queryset.model.__name__ + " by-ud",
-            url="s",
+            message=self.queryset.model.__name__ + "delete by-id",
+            url=request.get_full_path(),
             data=True,
         )
         return Response(custom_response_data, status=status.HTTP_200_OK)
@@ -176,7 +176,7 @@ def cita_confirmar(request):
                 url=request.get_full_path(),
                 fields_errors={"DoesNotExist": "id de la cita no existe"},
             ),
-            status=status.HTTP_200_OK,
+            status=status.HTTP_404_NOT_FOUND,
         )
     cita = citas[0]
     cita.estado = EstadoCita.CONFIRMADO
@@ -213,7 +213,7 @@ def cita_iniciar(request):
                 url=request.get_full_path(),
                 fields_errors={"DoesNotExist": "id de la cita no existe"},
             ),
-            status=status.HTTP_200_OK,
+            status=status.HTTP_404_NOT_FOUND,
         )
     cita = citas[0]
     cita.estado = EstadoCita.ATENDIENDO
@@ -249,7 +249,7 @@ def cita_finalizar(request):
                 url=request.get_full_path(),
                 fields_errors={"DoesNotExist": "id de la cita no existe"},
             ),
-            status=status.HTTP_200_OK,
+            status=status.HTTP_404_NOT_FOUND,
         )
     cita = citas[0]
     cita.estado = EstadoCita.FINALIZADO
@@ -285,7 +285,7 @@ def cita_validar(request):
                 url=request.get_full_path(),
                 fields_errors={"DoesNotExist": "id de la cita no existe"},
             ),
-            status=status.HTTP_200_OK,
+            status=status.HTTP_404_NOT_FOUND,
         )
     cita = citas[0]
     cita.estado = EstadoCita.VALIDADO
