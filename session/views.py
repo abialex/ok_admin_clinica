@@ -54,7 +54,7 @@ class UserViewSet(BaseModelViewSet):
         serializer = UsersSerializer(instance)
         custom_response_data = SUCCESS_MESSAGE(
             tipo=type(int).__name__,
-            message="historia clinica",
+            message="Usuario by-id",
             url=request.get_full_path(),
             data=serializer.data,
         )
@@ -69,19 +69,19 @@ class UserViewSet(BaseModelViewSet):
                     username=result_serializer.data["username"],
                 )
 
-                doctor = Doctor(
-                    nombres=result_serializer.data["nombres"],
-                    apellidos=result_serializer.data["apellidos"],
-                    dni=result_serializer.data["dni"],
-                    celular=result_serializer.data["celular"],
-                    fechaNacimiento=result_serializer.data["fechaNacimiento"],
-                    usuario_id=user.id,
-                )
-                doctor.save()
+                # doctor = Doctor(
+                #     nombres=result_serializer.data["nombres"],
+                #     apellidos=result_serializer.data["apellidos"],
+                #     dni=result_serializer.data["dni"],
+                #     celular=result_serializer.data["celular"],
+                #     fechaNacimiento=result_serializer.data["fechaNacimiento"],
+                #     usuario_id=user.id,
+                # )
+                # doctor.save()
 
             custom_response_data = SUCCESS_MESSAGE(
                 tipo=type(int).__name__,
-                message="historia clinica creada",
+                message="usuario creado",
                 url=request.get_full_path(),
                 data=user.id,
             )
@@ -101,7 +101,7 @@ class UserViewSet(BaseModelViewSet):
         response = super().update(request, *args, **kwargs)
         custom_response_data = SUCCESS_MESSAGE(
             tipo=type(int).__name__,
-            message="historia clinica modificada",
+            message="sin funcionalidad",
             url=request.get_full_path(),
             data=response.data[STRING(User.id)],
         )
