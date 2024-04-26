@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
 from recursos_humanos.choices import TipoAsistente
-from recursos_humanos.models import Asistente, Paciente, Persona, Doctor
+from recursos_humanos.models import Asistente
 from recursos_humanos.serializers import PersonaSerializer
 from session.serializers import UserResponseSerializer
 from shared.utils.Global import EXCLUDE_ATTR
 from ubicacion.models import Ubicacion
+from ubicacion.serializers import UbicacionsResponseSerializer
 
 
 # --- INICIO DEL BLOQUE: Asistente CRUDs ---
@@ -31,11 +32,20 @@ class AsistenteUpdateSerializer(PersonaSerializer):
 
 # --- INICIO DEL BLOQUE: Asistente Response ---
 class AsistenteResponseSerializer(serializers.ModelSerializer):
-    usuario = UserResponseSerializer()
+
+    usuario_id = serializers.SerializerMethodField()
+    usuario_username = serializers.SerializerMethodField()
+    ubicacion = UbicacionsResponseSerializer()
 
     class Meta:
         model = Asistente
-        exclude = EXCLUDE_ATTR
+        exclude = ("usuario",) + EXCLUDE_ATTR
+
+    def get_usuario_id(self, instance: Asistente):
+        return instance.usuario.id
+
+    def get_usuario_username(self, instance: Asistente):
+        return instance.usuario.username
 
 
 class AsistentesResponseSerializer(serializers.ModelSerializer):
