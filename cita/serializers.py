@@ -2,6 +2,11 @@ from rest_framework import serializers
 from cita.choices import EstadoCita, TipoCita
 from cita.models import Cita
 from recursos_humanos.models import Doctor
+from recursos_humanos.modules.paciente.serializers import (
+    PacienteResponseSerializer,
+    PacientesResponseSerializer,
+)
+from recursos_humanos.serializers import PersonaSerializer
 from shared.utils.Global import EXCLUDE_ATTR
 from ubicacion.models import Ubicacion
 
@@ -87,6 +92,7 @@ class CitaResponseSerializer(serializers.ModelSerializer):
     ubicacion = serializers.SerializerMethodField()
     estado_string = serializers.SerializerMethodField()
     tipo_string = serializers.SerializerMethodField()
+    paciente = PacienteResponseSerializer()
 
     class Meta:
         model = Cita
@@ -118,6 +124,7 @@ class CitasResponseSerializer(serializers.ModelSerializer):
     # ubicacion = serializers.SerializerMethodField()
     estado_string = serializers.SerializerMethodField()
     tipo_string = serializers.SerializerMethodField()
+    paciente = PacientesResponseSerializer()
 
     class Meta:
         model = Cita
