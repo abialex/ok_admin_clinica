@@ -99,8 +99,8 @@ def geIntegrytyErrorCustom(mensaje):
     match mensaje:
         case "UNIQUE constraint failed: recursos_humanos_doctor.dni":
             return "El DNI ya está registrado"
-        case "02":
-            return "February"
+        case "UNIQUE constraint failed: recursos_humanos_asistente.dni":
+            return "El DNI ya está registrado"
         case "03":
             return "March"
         case "04":

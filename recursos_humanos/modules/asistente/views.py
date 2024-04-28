@@ -52,13 +52,13 @@ class AsistenteViewSet(BaseModelViewSet):
     @validar_serializer(serializer=AsistenteCreateSerializer)
     def create(self, request, data, *args, **kwargs):
         with transaction.atomic():
-            password = assignUsername(dni=data[STRING(Doctor.dni)], prefix="slg_a_")
-            contrasenia = data[STRING(Asistente.dni)]
-            if User.objects.filter(username=password).__len__() > 0:
+            username = assignUsername(dni=data[STRING(Doctor.dni)], prefix="slg_a_")
+            password = data[STRING(Asistente.dni)]
+            if User.objects.filter(username=username).__len__() > 0:
                 raise IntegrityError("Este username ya existe.")
             user = User.objects.create(
-                username=password,
-                password=make_password(contrasenia),
+                username=username,
+                password=make_password(password),
             )
             asistente = Asistente(
                 nombres=data[STRING(Asistente.nombres)],
