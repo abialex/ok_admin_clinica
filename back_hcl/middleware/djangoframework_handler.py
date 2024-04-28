@@ -22,7 +22,6 @@ def custom_exception_handler(exc, context):
         exception_class = exc.__class__.__name__
         handlers = {
             "InvalidToken": {"token": "An authorization token is not valid."},
-            "IntegrityError": {"integrityError": exc.__str__()},
             "ValidationError": _handler_validation_error,
             # Add more handlers as needed
         }
@@ -42,6 +41,9 @@ def custom_exception_handler(exc, context):
             fields_errors = {exception_class: str(exc)}
         elif "NotAuthenticated" == exception_class:
             message = "No se proporcionaron las credenciales de autenticación"
+            fields_errors = {exception_class: str(exc)}
+        elif "IntegrityError" == exception_class:
+            message = geIntegrytyErrorCustom(str(exc))
             fields_errors = {exception_class: str(exc)}
         else:
             # error no especificado
@@ -91,3 +93,33 @@ def custom_404(request, exception=None):
     )
 
     return Response(response, status=status.HTTP_404_NOT_FOUND)
+
+
+def geIntegrytyErrorCustom(mensaje):
+    match mensaje:
+        case "UNIQUE constraint failed: recursos_humanos_doctor.dni":
+            return "El DNI ya está registrado"
+        case "02":
+            return "February"
+        case "03":
+            return "March"
+        case "04":
+            return "April"
+        case "05":
+            return "May"
+        case "06":
+            return "June"
+        case "07":
+            return "July"
+        case "08":
+            return "August"
+        case "09":
+            return "September"
+        case "10":
+            return "October"
+        case "11":
+            return "November"
+        case "12":
+            return "December"
+        case _:
+            return "Una de las condiciones del sistema no se ha cumplido"
