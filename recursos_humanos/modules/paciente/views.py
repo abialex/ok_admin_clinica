@@ -51,12 +51,12 @@ class PacienteViewSet(BaseModelViewSet):
     def create(self, request, data, *args, **kwargs):
         with transaction.atomic():
             username = data[STRING(Paciente.dni)]
-            contrasenia = data[STRING(Paciente.dni)]
+            password = data[STRING(Paciente.dni)]
             if User.objects.filter(username=username).__len__() > 0:
                 raise IntegrityError("Este username ya existe.")
             user = User.objects.create(
                 username=username,
-                password=make_password(contrasenia),
+                password=make_password(password),
             )
             asistente = Paciente(
                 nombres=data[STRING(Paciente.nombres)],
@@ -75,7 +75,7 @@ class PacienteViewSet(BaseModelViewSet):
             url=request.get_full_path(),
             data={
                 "username": user.username,
-                "contraseña": contrasenia,
+                "password": password,
             },
         )
         return Response(custom_response_data, status=status.HTTP_201_CREATED)

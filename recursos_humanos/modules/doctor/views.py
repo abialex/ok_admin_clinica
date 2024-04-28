@@ -66,12 +66,12 @@ class DoctorViewSet(BaseModelViewSet):
         with transaction.atomic():
 
             username = assignUsername(dni=data[STRING(Doctor.dni)], prefix="slg_")
-            contrasenia = data[STRING(Doctor.dni)]
+            password = data[STRING(Doctor.dni)]
             if User.objects.filter(username=username).__len__() > 0:
                 raise IntegrityError("Este username ya existe.")
             user = User.objects.create(
                 username=username,
-                password=make_password(contrasenia),
+                password=make_password(password),
             )
             doctor = Doctor(
                 nombres=data[STRING(Doctor.nombres)],
@@ -83,6 +83,7 @@ class DoctorViewSet(BaseModelViewSet):
             )
             doctor.created_by = self.request.user
             doctor.save()
+            doctor.ubicaciones.add(*data["ubicaciones_id"])
 
         custom_response_data = SUCCESS_MESSAGE(
             tipo=self.queryset.model.__name__,
@@ -90,7 +91,7 @@ class DoctorViewSet(BaseModelViewSet):
             url=request.get_full_path(),
             data={
                 "username": user.username,
-                "contraseña": contrasenia,
+                "password": password,
             },
         )
         return Response(custom_response_data, status=status.HTTP_201_CREATED)
@@ -99,8 +100,8 @@ class DoctorViewSet(BaseModelViewSet):
     def update(self, request, data, *args, **kwargs):
         with transaction.atomic():
             instance = self.get_object()
-            if data.get(STRING(Doctor.ubicaciones)) is not None:
-                instance.ubicaciones.set(data[STRING(Doctor.ubicaciones)])
+            if data.get("ubicaciones_id") is not None:
+                instance.ubicaciones.set(data["ubicaciones_id"])
             instance.nombres = data[STRING(Doctor.nombres)]
             instance.apellidos = data[STRING(Doctor.apellidos)]
             instance.dni = data[STRING(Doctor.dni)]

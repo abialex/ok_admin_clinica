@@ -19,7 +19,7 @@ class DoctorCreateSerializer(PersonaSerializer):
 class DoctorUpdateSerializer(PersonaSerializer):
     id = serializers.IntegerField()
     especialidad = serializers.CharField(max_length=100, required=False)
-    ubicaciones = serializers.PrimaryKeyRelatedField(
+    ubicaciones_id = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Ubicacion.objects.filter(is_active=True), required=False
     )
 
