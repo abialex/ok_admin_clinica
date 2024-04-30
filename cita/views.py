@@ -341,7 +341,9 @@ def cita_list_filter(request):
     elif mes:
         fecha_inicio_mes = datetime.datetime.strptime(mes, "%Y-%m").date()
         fecha_fin_mes = fecha_inicio_mes.replace(
-            day=1, month=fecha_inicio_mes.month + 1
+            year=fecha_inicio_mes.year + (1 if fecha_inicio_mes.month == 12 else 0),
+            day=1,
+            month=(1 if fecha_inicio_mes.month == 12 else fecha_inicio_mes.month + 1),
         ) - datetime.timedelta(days=1)
         citas = Cita.objects.filter(
             **kwargs, fechaHoraCita__range=[fecha_inicio_mes, fecha_fin_mes]
