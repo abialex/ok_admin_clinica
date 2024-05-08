@@ -13,7 +13,7 @@ from ubicacion.models import Ubicacion
 
 # --- INICIO DEL BLOQUE: BASE ---
 class CitaSerializer(serializers.Serializer):
-    razon = serializers.CharField(max_length=150, required=False)
+    razon = serializers.CharField(max_length=150, required=False, allow_null=True)
     doctor_id = serializers.PrimaryKeyRelatedField(
         queryset=Doctor.objects.filter(is_active=True),
         source="doctor",
@@ -30,7 +30,7 @@ class CitaSerializer(serializers.Serializer):
 
 class CitaAgilCreateSerializer(CitaSerializer):
     datosPaciente = serializers.CharField(max_length=150, required=True)
-    celular = serializers.CharField(max_length=9, required=False)
+    celular = serializers.CharField(max_length=9, required=False, allow_null=True)
     tipo = serializers.ChoiceField(choices=TipoCita.choices, default=TipoCita.AGIL)
     estado = serializers.ChoiceField(
         choices=EstadoCita.choices, default=EstadoCita.PENDIENTE

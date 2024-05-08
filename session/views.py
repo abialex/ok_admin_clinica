@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.authtoken.models import Token
 
+from recursos_humanos.choices import TipoAsistente
 from recursos_humanos.serializers import PersonaSerializer
 
 # from core.models import UserRol, UserSede
@@ -22,6 +23,7 @@ from shared.utils.Global import (
     SUCCESS_MESSAGE,
     ERROR_MESSAGE,
     STRING,
+    RolEnum,
 )
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -160,6 +162,11 @@ class AuthTokenLogin(ObtainAuthToken):
                     "is_new_token": created,
                     "rol": rol.name,
                     "dias_token": diasToken,
+                    "tipo": (
+                        TipoAsistente(persona.tipo).label
+                        if hasattr(persona, "tipo")
+                        else None
+                    ),
                 },
             )
             return Response(response)
