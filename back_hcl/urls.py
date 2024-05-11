@@ -40,4 +40,8 @@ urlpatterns = [
         "service_external/",
         include("services_external.urls", namespace="service_external"),
     ),
+    path(
+        "ubicaciones/",
+        include("ubicacion.urls", namespace="ubicacion"),
+    ),
 ]  # + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
