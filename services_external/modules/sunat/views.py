@@ -35,16 +35,16 @@ def getPersonaSunByDni(request, dni):
         data = ERROR_MESSAGE(
             tipo="error",
             message=result.reason,
-            fields_errors=None,
+            fields_errors={},
             url=request.get_full_path(),
         )
         return Response(data, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     else:
         data = ERROR_MESSAGE(
-            tipo=result.status_code,
+            tipo=result.status_code.__str__(),
             message=result.reason,
-            fields_errors=None,
+            fields_errors={},
             url=request.get_full_path(),
         )
     return Response(data, status=status.HTTP_404_NOT_FOUND)

@@ -275,7 +275,9 @@ def cita_finalizar(request):
 def cita_validar(request):
     cita_id = request.GET.get("id")
     citas = Cita.objects.filter(
-        id=cita_id, is_deleted=False, estado=EstadoCita.FINALIZADO
+        id=cita_id,
+        is_deleted=False,
+        estado__in=[EstadoCita.FINALIZADO, EstadoCita.CONFIRMADO],
     )
     if citas.__len__() == 0:
         return Response(
