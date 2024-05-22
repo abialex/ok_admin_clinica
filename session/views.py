@@ -167,6 +167,7 @@ class AuthTokenLogin(ObtainAuthToken):
                         if hasattr(persona, "tipo")
                         else None
                     ),
+                    "ubicaciones": getUbicacionesByRol(rol=rol, persona=persona),
                 },
             )
             return Response(response)
@@ -234,3 +235,18 @@ def login_authenticated(request):
             ),
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+def getUbicacionesByRol(persona, rol: RolEnum):
+    if rol == RolEnum.DEVELOPER:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.ADMINISTRADOR:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.SUPERDOCTOR:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.ASISTENTE:
+        return [persona.ubicacion_id]
+    elif rol == RolEnum.DOCTOR:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.PACIENTE:
+        return [persona.ubicacion_id]
