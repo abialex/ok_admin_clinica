@@ -36,12 +36,12 @@ from shared.utils.decoradores import validar_data_serializer, validar_serializer
 def cita_by_fecha_iddoctor_idubicacion(request, data):
     fechaHoraCita = data["fechaHoraCita"]
     doctor_id = data["doctor_id"]
-    ubicacion_id = data["ubicacion_id"]
+    ubicaciones_id = data["ubicaciones_id"]
 
     cita_list = Cita.objects.filter(
         fechaHoraCita__date=fechaHoraCita,
         doctor_id=doctor_id,
-        ubicacion_id=ubicacion_id,
+        ubicacion_id__in=ubicaciones_id,
     ).order_by("fechaHoraCita")
     cita_ser_list = CitasResponseSerializer(cita_list, many=True)
 

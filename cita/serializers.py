@@ -77,10 +77,10 @@ class CitaByFechaIdUbicacionIdDoctorSerializer(serializers.Serializer):
         source="doctor",
         required=True,
     )
-    ubicacion_id = serializers.PrimaryKeyRelatedField(
-        queryset=Ubicacion.objects.all(),
-        source="ubicacion",
-        required=True,
+    ubicaciones_id = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Ubicacion.objects.filter(is_active=True),
+        required=False,
     )
 
 
