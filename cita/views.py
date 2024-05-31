@@ -45,6 +45,7 @@ def cita_by_fecha_iddoctor_idubicacion(request, data):
             doctor_id=doctor_id,
         )
         .filter(Q(ubicacion_id__in=ubicaciones_id) | Q(ubicacion=None))
+        .exclude(is_deleted=True)
         .order_by("fechaHoraCita")
     )
     cita_ser_list = CitasResponseSerializer(cita_list, many=True)
