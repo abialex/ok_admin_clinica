@@ -149,3 +149,69 @@ def doctor_get_by_ubicacion(request):
         ),
         status=status.HTTP_200_OK,
     )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def doctor_activar(request):
+    doctor_id = request.GET.get("id")
+    doctores = Doctor.objects.filter(id=doctor_id, is_active=False)
+    if doctores.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=doctores.model.__name__,
+                message="El doctor inactivo no se encontró",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "doctor activo no existe"},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    doctor = doctores[0]
+    doctor.is_active = True
+    # base
+    doctor.updated_by = request.user
+    doctor.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(doctor).__name__,
+            message="Cita Iniciada",
+            url=request.get_full_path(),
+            data=True,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def doctor_inactivar(request):
+    doctor_id = request.GET.get("id")
+    doctores = Doctor.objects.filter(id=doctor_id, is_active=True)
+    if doctores.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=doctores.model.__name__,
+                message="El doctor inactivo no se encontró",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "doctor activo no existe"},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    doctor = doctores[0]
+    doctor.is_active = False
+    # base
+    doctor.updated_by = request.user
+    doctor.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(doctor).__name__,
+            message="Cita Iniciada",
+            url=request.get_full_path(),
+            data=True,
+        ),
+        status=status.HTTP_200_OK,
+    )
