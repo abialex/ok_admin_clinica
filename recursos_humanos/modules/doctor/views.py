@@ -36,7 +36,7 @@ from shared.utils.decoradores import validar_serializer
 
 # Create your views here.
 class DoctorViewSet(BaseModelViewSet):
-    queryset = Doctor.objects.filter(is_active=True)
+    queryset = Doctor.objects.filter(is_deleted=False)
     serializer_class = DoctorCreateSerializer
 
     def list(self, request, *args, **kwargs):
@@ -137,7 +137,7 @@ def doctor_get_by_ubicacion(request):
         )
 
     doctores = Doctor.objects.filter(
-        is_active=True, ubicaciones=personaAsistente.ubicacion.id
+        is_deleted=False, ubicaciones=personaAsistente.ubicacion.id
     )
     serializer = DoctorsResponseSerializer(doctores, many=True)
     return Response(

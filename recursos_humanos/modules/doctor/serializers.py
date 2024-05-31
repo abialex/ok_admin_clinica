@@ -49,7 +49,16 @@ class DoctorsResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ("id", "usuario_id", "username", "nombres", "apellidos")
+        fields = (
+            "id",
+            "usuario_id",
+            "username",
+            "nombres",
+            "apellidos",
+            "is_active",
+            "fechaNacimiento",
+            "celular",
+        )
 
 
 # --- FIN DEL BLOQUE ---
