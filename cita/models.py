@@ -7,7 +7,9 @@ from ubicacion.models import Ubicacion
 
 class Cita(BaseModel):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, null=False)
-    ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE, null=False)
+    ubicacion = models.ForeignKey(
+        Ubicacion, on_delete=models.CASCADE, null=True, blank=True
+    )
     fechaHoraCita = models.DateTimeField(blank=False, null=False)
     estado = models.IntegerField(choices=EstadoCita.choices)
     tipo = models.IntegerField(choices=TipoCita.choices)

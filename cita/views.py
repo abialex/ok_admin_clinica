@@ -26,6 +26,7 @@ from rest_framework.decorators import (
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from shared.utils.decoradores import validar_data_serializer, validar_serializer
+from django.db.models import Q
 
 
 # Create your views here.
@@ -38,11 +39,14 @@ def cita_by_fecha_iddoctor_idubicacion(request, data):
     doctor_id = data["doctor_id"]
     ubicaciones_id = data["ubicaciones_id"]
 
-    cita_list = Cita.objects.filter(
-        fechaHoraCita__date=fechaHoraCita,
-        doctor_id=doctor_id,
-        ubicacion_id__in=ubicaciones_id,
-    ).order_by("fechaHoraCita")
+    cita_list = (
+        Cita.objects.filter(
+            fechaHoraCita__date=fechaHoraCita,
+            doctor_id=doctor_id,
+        )
+        .filter(Q(ubicacion_id__in=ubicaciones_id) | Q(ubicacion=None))
+        .order_by("fechaHoraCita")
+    )
     cita_ser_list = CitasResponseSerializer(cita_list, many=True)
 
     return Response(
@@ -122,6 +126,7 @@ def update_cita_agil(request, data: Cita):
     cita.datosPaciente = data.datosPaciente
     cita.razon = data.razon
     cita.doctor_id = data.doctor.id
+    cita.celular = data.celular
     # base
     cita.updated_by = request.user
     cita.save()

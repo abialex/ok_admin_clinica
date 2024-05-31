@@ -49,8 +49,13 @@ class CitaAgilUpdateSerializer(CitaSerializer):
 
 
 class CitaOcupadoCreateSerializer(CitaSerializer):
-
-    razonOcupado = serializers.CharField(max_length=150, required=False)
+    ubicacion_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+    )
+    razonOcupado = serializers.CharField(
+        max_length=150, required=False, allow_null=True
+    )
     tipo = serializers.ChoiceField(choices=TipoCita.choices, default=TipoCita.OCUPADO)
     estado = serializers.ChoiceField(
         choices=EstadoCita.choices, default=EstadoCita.VALIDADO
@@ -105,9 +110,13 @@ class CitaResponseSerializer(serializers.ModelSerializer):
         return instance.doctor.nombres
 
     def get_ubicacion_id(self, instance: Cita):
+        if instance.ubicacion == None:
+            return None
         return instance.ubicacion.id
 
     def get_ubicacion(self, instance: Cita):
+        if instance.ubicacion == None:
+            return None
         return instance.ubicacion.nombre
 
     def get_estado_string(self, instance: Cita):
