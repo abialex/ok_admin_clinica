@@ -30,4 +30,4 @@ def createOrUpdateUserTokenFirebase(
     if not created:
         token.token_fcm = cls.token_fcm
         token.save()
-    return token.id, "creado" if created else "modificado"
+    return token.id, status.HTTP_201_CREATED if created else status.HTTP_200_OK

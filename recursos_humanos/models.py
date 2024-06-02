@@ -1,8 +1,6 @@
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
 from back_hcl import settings
 from django.db import models
-
+from recursos_humanos.choices import TipoAsistente
 from shared.utils.baseModel import BaseModel
 from ubicacion.models import Ubicacion
 
@@ -21,6 +19,9 @@ class Persona(BaseModel):
     class Meta:
         abstract = True
 
+    def __str__(self):
+        return f"{self.nombres} {self.apellidos}"
+
 
 class Doctor(Persona):
     especialidad = models.CharField(max_length=50, null=True, blank=True)
@@ -28,15 +29,9 @@ class Doctor(Persona):
     # Otros campos específicos de doctores
 
 
-@receiver(pre_delete, sender=Ubicacion)
-def eliminar_ubicaciones_relacionadas(sender, instance, **kwargs):
-    # Eliminar todos los libros relacionados con el autor que se está eliminando
-    instance.ubicacion_set.all().delete()
-
-
 class Asistente(Persona):
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE, null=False)
-    rol = models.CharField(max_length=50)
+    tipo = models.IntegerField(choices=TipoAsistente.choices)
     # Otros campos específicos de asistentes
 
 

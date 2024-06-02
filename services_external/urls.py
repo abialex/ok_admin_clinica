@@ -13,10 +13,10 @@ urlpatterns = [
         "firebase/",
         include("services_external.modules.firebase.urls", namespace="firebase"),
     ),
-    # path(
-    #     "doctores/",
-    #     include("recursos_humanos.modules.doctor.urls", namespace="doctor"),
-    # ),
+    path(
+        "sunat/",
+        include("services_external.modules.sunat.urls", namespace="sunat"),
+    ),
 ]
 
 
