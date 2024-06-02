@@ -11,19 +11,27 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.authtoken.models import Token
 
+from recursos_humanos.choices import TipoAsistente
 from recursos_humanos.serializers import PersonaSerializer
 
 # from core.models import UserRol, UserSede
 # from core.serializers import UserRolSerializer, UserSedeSerializer
-from session.models import UserTokenFirebase
 from session.serializers import *
-from shared.utils.Global import DIAS_TOKEN, GET_ROL, SECCUSSFULL_MESSAGE, ERROR_MESSAGE
+from shared.utils.Global import (
+    DIAS_TOKEN,
+    GET_ROL,
+    SUCCESS_MESSAGE,
+    ERROR_MESSAGE,
+    STRING,
+    RolEnum,
+)
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
 # from Utils import create_response_succes, create_response_error
+
 
 class UserViewSet(BaseModelViewSet):
     queryset = User.objects.filter(is_active=True)
@@ -35,7 +43,7 @@ class UserViewSet(BaseModelViewSet):
         # Serializar los datos
         serializer = UsersSerializer(queryset, many=True)
         # Personalizar la respuesta según tus necesidades
-        custom_data = SECCUSSFULL_MESSAGE(
+        custom_data = SUCCESS_MESSAGE(
             tipo=type(self).__name__,
             message="lista de historias clinicas",
             url=request.get_full_path(),
@@ -46,9 +54,9 @@ class UserViewSet(BaseModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = UsersSerializer(instance)
-        custom_response_data = SECCUSSFULL_MESSAGE(
+        custom_response_data = SUCCESS_MESSAGE(
             tipo=type(int).__name__,
-            message="historia clinica",
+            message="Usuario by-id",
             url=request.get_full_path(),
             data=serializer.data,
         )
@@ -63,19 +71,19 @@ class UserViewSet(BaseModelViewSet):
                     username=result_serializer.data["username"],
                 )
 
-                doctor = Doctor(
-                    nombres=result_serializer.data["nombres"],
-                    apellidos=result_serializer.data["apellidos"],
-                    dni=result_serializer.data["dni"],
-                    celular=result_serializer.data["celular"],
-                    fechaNacimiento=result_serializer.data["fechaNacimiento"],
-                    usuario_id=user.id,
-                )
-                doctor.save()
+                # doctor = Doctor(
+                #     nombres=result_serializer.data["nombres"],
+                #     apellidos=result_serializer.data["apellidos"],
+                #     dni=result_serializer.data["dni"],
+                #     celular=result_serializer.data["celular"],
+                #     fechaNacimiento=result_serializer.data["fechaNacimiento"],
+                #     usuario_id=user.id,
+                # )
+                # doctor.save()
 
-            custom_response_data = SECCUSSFULL_MESSAGE(
+            custom_response_data = SUCCESS_MESSAGE(
                 tipo=type(int).__name__,
-                message="historia clinica creada",
+                message="usuario creado",
                 url=request.get_full_path(),
                 data=user.id,
             )
@@ -93,11 +101,11 @@ class UserViewSet(BaseModelViewSet):
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        custom_response_data = SECCUSSFULL_MESSAGE(
+        custom_response_data = SUCCESS_MESSAGE(
             tipo=type(int).__name__,
-            message="historia clinica modificada",
+            message="sin funcionalidad",
             url=request.get_full_path(),
-            data=response.data["id"],
+            data=response.data[STRING(User.id)],
         )
         return Response(custom_response_data, status=status.HTTP_200_OK)
 
@@ -125,9 +133,24 @@ class AuthTokenLogin(ObtainAuthToken):
                 token.delete()
                 token = Token.objects.create(user=user)
                 created = True
-                diasToken = 7
+                diasToken = DIAS_TOKEN
             rol, persona = GET_ROL(user)
-            response = SECCUSSFULL_MESSAGE(
+            if persona is None:
+                if user.username == "slg_main":
+                    response = SUCCESS_MESSAGE(
+                        tipo=type(user).__name__,
+                        message="Login",
+                        url=request.get_full_path(),
+                        data={
+                            "username": user.username,
+                            "user_id": user.pk,
+                            "token": "token " + token.key,
+                            "is_new_token": created,
+                            "dias_token": diasToken,
+                        },
+                    )
+                    return Response(response)
+            response = SUCCESS_MESSAGE(
                 tipo=type(user).__name__,
                 message="Login",
                 url=request.get_full_path(),
@@ -139,6 +162,12 @@ class AuthTokenLogin(ObtainAuthToken):
                     "is_new_token": created,
                     "rol": rol.name,
                     "dias_token": diasToken,
+                    "tipo": (
+                        TipoAsistente(persona.tipo).label
+                        if hasattr(persona, "tipo")
+                        else None
+                    ),
+                    "ubicaciones": getUbicacionesByRol(rol=rol, persona=persona),
                 },
             )
             return Response(response)
@@ -159,12 +188,11 @@ class AuthTokenDelete(ObtainAuthToken):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        print(request.headers)
         token, created = Token.objects.get_or_create(user=request.user)
         token.delete()
         return Response(
-            SECCUSSFULL_MESSAGE(
-                tipo=type(int).__name__,
+            SUCCESS_MESSAGE(
+                tipo=type(bool).__name__,
                 message="Sesión cerrada",
                 url=request.get_full_path(),
                 data=True,
@@ -187,7 +215,7 @@ def login_authenticated(request):
             token_status = "Su sesión ha terminado, inicie sesión"
             is_valid = False
 
-        custom_response_data = SECCUSSFULL_MESSAGE(
+        custom_response_data = SUCCESS_MESSAGE(
             tipo=type(int).__name__,
             message="token",
             url=request.get_full_path(),
@@ -207,3 +235,18 @@ def login_authenticated(request):
             ),
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+def getUbicacionesByRol(persona, rol: RolEnum):
+    if rol == RolEnum.DEVELOPER:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.ADMINISTRADOR:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.SUPERDOCTOR:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.ASISTENTE:
+        return [persona.ubicacion_id]
+    elif rol == RolEnum.DOCTOR:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.PACIENTE:
+        return [persona.ubicacion_id]

@@ -14,8 +14,15 @@ from recursos_humanos.modules.doctor.serializers import (
     DoctorUpdateSerializer,
     DoctorsResponseSerializer,
 )
+from recursos_humanos.views import assignUsername
 from session.models import User
-from shared.utils.Global import ERROR_MESSAGE, GET_ROL, SECCUSSFULL_MESSAGE, RolEnum
+from shared.utils.Global import (
+    ERROR_MESSAGE,
+    GET_ROL,
+    SUCCESS_MESSAGE,
+    STRING,
+    RolEnum,
+)
 from rest_framework import status
 from shared.utils.baseModel import BaseModelViewSet
 from django.db import transaction
@@ -24,16 +31,18 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
+from shared.utils.decoradores import validar_serializer
+
 
 # Create your views here.
 class DoctorViewSet(BaseModelViewSet):
-    queryset = Doctor.objects.filter(is_active=True)
+    queryset = Doctor.objects.filter(is_deleted=False)
     serializer_class = DoctorCreateSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = DoctorsResponseSerializer(queryset, many=True)
-        custom_data = SECCUSSFULL_MESSAGE(
+        custom_data = SUCCESS_MESSAGE(
             tipo=type(self).__name__,
             message="lista de Doctores",
             url=request.get_full_path(),
@@ -44,7 +53,7 @@ class DoctorViewSet(BaseModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = DoctorResponseSerializer(instance)
-        custom_response_data = SECCUSSFULL_MESSAGE(
+        custom_response_data = SUCCESS_MESSAGE(
             tipo=type(int).__name__,
             message="Doctor",
             url=request.get_full_path(),
@@ -52,79 +61,63 @@ class DoctorViewSet(BaseModelViewSet):
         )
         return Response(custom_response_data, status=status.HTTP_200_OK)
 
-    def create(self, request, *args, **kwargs):
-        result_serializer = DoctorCreateSerializer(data=request.data)
-        if result_serializer.is_valid():
-            with transaction.atomic():
-                username = "slg_" + result_serializer.data["dni"][:2]
-                contrasenia = result_serializer.data["dni"]
-                if User.objects.filter(username=username).__len__() > 0:
-                    raise IntegrityError("Este username ya existe.")
-                user = User.objects.create(
-                    username=username,
-                    password=make_password(contrasenia),
-                )
-                doctor = Doctor(
-                    nombres=result_serializer.data["nombres"],
-                    apellidos=result_serializer.data["apellidos"],
-                    dni=result_serializer.data["dni"],
-                    celular=result_serializer.data["celular"],
-                    fechaNacimiento=result_serializer.data["fechaNacimiento"],
-                    usuario_id=user.id,
-                )
-                doctor.created_by = self.request.user
-                doctor.save()
+    @validar_serializer(serializer=DoctorCreateSerializer)
+    def create(self, request, data, *args, **kwargs):
+        with transaction.atomic():
 
-            custom_response_data = SECCUSSFULL_MESSAGE(
-                tipo=type(int).__name__,
-                message="Doctor creado",
-                url=request.get_full_path(),
-                data={
-                    "username": user.username,
-                    "contraseña": contrasenia,
-                },
+            username = assignUsername(dni=data[STRING(Doctor.dni)], prefix="slg_")
+            password = data[STRING(Doctor.dni)]
+            if User.objects.filter(username=username).__len__() > 0:
+                raise IntegrityError("Este username ya existe.")
+            user = User.objects.create(
+                username=username,
+                password=make_password(password),
             )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
-        else:
-            custom_response_data = ERROR_MESSAGE(
-                tipo=type(int).__name__,
-                message="error",
-                url=request.get_full_path(),
-                fields_errors=result_serializer.errors,
+            doctor = Doctor(
+                nombres=data[STRING(Doctor.nombres)],
+                apellidos=data[STRING(Doctor.apellidos)],
+                dni=data[STRING(Doctor.dni)],
+                celular=data[STRING(Doctor.celular)],
+                fechaNacimiento=data[STRING(Doctor.fechaNacimiento)],
+                usuario_id=user.id,
             )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
+            doctor.created_by = self.request.user
+            doctor.save()
+            doctor.ubicaciones.add(*data["ubicaciones_id"])
 
-    def update(self, request, *args, **kwargs):
-        result_serializer = DoctorUpdateSerializer(data=request.data)
-        if result_serializer.is_valid():
-            with transaction.atomic():
-                instance = self.get_object()
-                if result_serializer.data.get("ubicaciones") is not None:
-                    instance.ubicaciones.set(result_serializer.data["ubicaciones"])
-                instance.nombres = result_serializer.data["nombres"]
-                instance.apellidos = result_serializer.data["apellidos"]
-                instance.dni = result_serializer.data["dni"]
-                instance.celular = result_serializer.data["celular"]
-                instance.fechaNacimiento = result_serializer.data["fechaNacimiento"]
-                instance.updated_at = datetime.datetime.now()
-                instance.updated_by = self.request.user
-                instance.save()
+        custom_response_data = SUCCESS_MESSAGE(
+            tipo=self.queryset.model.__name__,
+            message=self.queryset.model.__name__ + " creado",
+            url=request.get_full_path(),
+            data={
+                "username": user.username,
+                "password": password,
+            },
+        )
+        return Response(custom_response_data, status=status.HTTP_201_CREATED)
 
-            custom_response_data = SECCUSSFULL_MESSAGE(
-                tipo=type(int).__name__,
-                message="Doctor Modificado",
-                url=request.get_full_path(),
-                data=instance.id,
-            )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
-        else:
-            custom_response_data = ERROR_MESSAGE(
-                tipo=type(int).__name__,
-                message="error",
-                url=request.get_full_path(),
-                fields_errors=result_serializer.errors,
-            )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
+    @validar_serializer(serializer=DoctorUpdateSerializer)
+    def update(self, request, data, *args, **kwargs):
+        with transaction.atomic():
+            instance = self.get_object()
+            if data.get("ubicaciones_id") is not None:
+                instance.ubicaciones.set(data["ubicaciones_id"])
+            instance.nombres = data[STRING(Doctor.nombres)]
+            instance.apellidos = data[STRING(Doctor.apellidos)]
+            instance.dni = data[STRING(Doctor.dni)]
+            instance.celular = data[STRING(Doctor.celular)]
+            instance.fechaNacimiento = data[STRING(Doctor.fechaNacimiento)]
+            instance.updated_at = datetime.datetime.now()
+            instance.updated_by = self.request.user
+            instance.save()
+
+        custom_response_data = SUCCESS_MESSAGE(
+            tipo=self.queryset.model.__name__,
+            message=self.queryset.model.__name__ + " modificado",
+            url=request.get_full_path(),
+            data=instance.id,
+        )
+        return Response(custom_response_data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
@@ -144,11 +137,152 @@ def doctor_get_by_ubicacion(request):
         )
 
     doctores = Doctor.objects.filter(
-        is_active=True, ubicaciones=personaAsistente.ubicacion.id
+        is_deleted=False, ubicaciones=personaAsistente.ubicacion.id
     )
     serializer = DoctorsResponseSerializer(doctores, many=True)
     return Response(
-        SECCUSSFULL_MESSAGE(
+        SUCCESS_MESSAGE(
+            tipo=type(int).__name__,
+            message="Doctores por Ubicacion",
+            url=request.get_full_path(),
+            data=serializer.data,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def doctor_activar(request):
+    doctor_id = request.GET.get("id")
+    doctores = Doctor.objects.filter(id=doctor_id, is_active=False)
+    if doctores.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=doctores.model.__name__,
+                message="El doctor inactivo no se encontró",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "doctor activo no existe"},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    doctor = doctores[0]
+    doctor.is_active = True
+    # base
+    doctor.updated_by = request.user
+    doctor.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(doctor).__name__,
+            message="Cita Iniciada",
+            url=request.get_full_path(),
+            data=True,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def doctor_inactivar(request):
+    doctor_id = request.GET.get("id")
+    doctores = Doctor.objects.filter(id=doctor_id, is_active=True)
+    if doctores.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=doctores.model.__name__,
+                message="El doctor inactivo no se encontró",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "doctor activo no existe"},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    doctor = doctores[0]
+    doctor.is_active = False
+    # base
+    doctor.updated_by = request.user
+    doctor.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(doctor).__name__,
+            message="Cita Iniciada",
+            url=request.get_full_path(),
+            data=True,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def reset_password(request):
+    doctor_id = request.GET.get("id")
+    doctores = Doctor.objects.filter(id=doctor_id)
+    if doctores.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=doctores.model.__name__,
+                message="El doctor no se encontró",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "doctor activo no existe"},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    doctor = doctores[0]
+    user = User.objects.get(id=doctor.usuario_id)
+    user.password = make_password(doctor.dni)
+    user.save()
+    # base
+    doctor.updated_by = request.user
+    doctor.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type("").__name__,
+            message="Password reiniciado",
+            url=request.get_full_path(),
+            data="Su contraseña se ha cambiado a " + doctor.dni,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def doctor_get_by_user_doctor(request):
+    rol, personaDoctor = GET_ROL(request.user)
+    if rol != RolEnum.DOCTOR:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=type(int).__name__,
+                message="Doctores por Ubicacion",
+                url=request.get_full_path(),
+                fields_errors="Esta persona no tiene acceso",
+            ),
+            status=status.HTTP_200_OK,
+        )
+
+    doctores = Doctor.objects.filter(is_deleted=False, id=personaDoctor.id)
+    if doctores.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=doctores.model.__name__,
+                message="El doctor no se encontró",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "doctor activo no existe"},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    serializer = DoctorsResponseSerializer(doctores, many=True)
+    return Response(
+        SUCCESS_MESSAGE(
             tipo=type(int).__name__,
             message="Doctores por Ubicacion",
             url=request.get_full_path(),

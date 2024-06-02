@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from cita.choices import EstadoCitaTentativa
+from cita.choices import EstadoCita
 
 from recursos_humanos.models import Asistente, Paciente, Persona, Doctor
 from session.serializers import UserResponseSerializer
@@ -30,8 +30,8 @@ from ubicacion.models import Ubicacion
 
 
 # --- INICIO DEL BLOQUE: Doctor CRUDs ---
-class CitaOcupadoCreateSerializer(serializers.Serializer):
-    razonOcupado = serializers.CharField(max_length=150, required=False)
+# class CitaOcupadoCreateSerializer(serializers.Serializer):
+#     razonOcupado = serializers.CharField(max_length=150, required=False)
 
 
 # class DoctorUpdateSerializer(PersonaSerializer):

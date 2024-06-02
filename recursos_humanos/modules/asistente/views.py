@@ -9,8 +9,9 @@ from recursos_humanos.modules.asistente.serializers import (
     AsistenteUpdateSerializer,
     AsistentesResponseSerializer,
 )
+from recursos_humanos.views import assignUsername
 from session.models import User
-from shared.utils.Global import ERROR_MESSAGE, SECCUSSFULL_MESSAGE
+from shared.utils.Global import ERROR_MESSAGE, SUCCESS_MESSAGE, STRING
 from rest_framework import status
 from shared.utils.baseModel import BaseModelViewSet
 from django.db import transaction
@@ -18,6 +19,7 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from shared.utils.decoradores import validar_serializer
 
 
 # Create your views here.
@@ -28,9 +30,9 @@ class AsistenteViewSet(BaseModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = AsistentesResponseSerializer(queryset, many=True)
-        custom_data = SECCUSSFULL_MESSAGE(
-            tipo=type(self).__name__,
-            message="lista de Asistentes",
+        custom_data = SUCCESS_MESSAGE(
+            tipo=self.queryset.model.__name__,
+            message=self.queryset.model.__name__ + " list",
             url=request.get_full_path(),
             data=serializer.data,
         )
@@ -39,82 +41,68 @@ class AsistenteViewSet(BaseModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = AsistenteResponseSerializer(instance)
-        custom_response_data = SECCUSSFULL_MESSAGE(
-            tipo=type(int).__name__,
-            message="Asistente",
+        custom_response_data = SUCCESS_MESSAGE(
+            tipo=self.queryset.model.__name__,
+            message=self.queryset.model.__name__ + " by-id",
             url=request.get_full_path(),
             data=serializer.data,
         )
         return Response(custom_response_data, status=status.HTTP_200_OK)
 
-    def create(self, request, *args, **kwargs):
-        result_serializer = AsistenteCreateSerializer(data=request.data)
-        if result_serializer.is_valid():
-            with transaction.atomic():
-                username = "slg_a_" + result_serializer.data["dni"][:2]
-                contrasenia = result_serializer.data["dni"]
-                if User.objects.filter(username=username).__len__() > 0:
-                    raise IntegrityError("Este username ya existe.")
-                user = User.objects.create(
-                    username=username,
-                    password=make_password(contrasenia),
-                )
-                asistente = Asistente(
-                    nombres=result_serializer.data["nombres"],
-                    apellidos=result_serializer.data["apellidos"],
-                    dni=result_serializer.data["dni"],
-                    celular=result_serializer.data["celular"],
-                    fechaNacimiento=result_serializer.data["fechaNacimiento"],
-                    usuario_id=user.id,
-                )
-                asistente.created_by = self.request.user
-                asistente.save()
+    @validar_serializer(serializer=AsistenteCreateSerializer)
+    def create(self, request, data, *args, **kwargs):
+        with transaction.atomic():
+            username = assignUsername(dni=data[STRING(Doctor.dni)], prefix="slg_a_")
+            password = data[STRING(Asistente.dni)]
+            if User.objects.filter(username=username).__len__() > 0:
+                raise IntegrityError("Este username ya existe.")
+            user = User.objects.create(
+                username=username,
+                password=make_password(password),
+            )
+            asistente = Asistente(
+                nombres=data[STRING(Asistente.nombres)],
+                apellidos=data[STRING(Asistente.apellidos)],
+                dni=data[STRING(Asistente.dni)],
+                celular=data[STRING(Asistente.celular)],
+                fechaNacimiento=data[STRING(Asistente.fechaNacimiento)],
+                ubicacion_id=data[STRING(Asistente.ubicacion)],
+                tipo=data[STRING(Asistente.tipo)],
+                usuario_id=user.id,
+            )
+            asistente.created_by = self.request.user
+            asistente.save()
 
-            custom_response_data = SECCUSSFULL_MESSAGE(
-                tipo=type(int).__name__,
-                message="Asistente creado",
-                url=request.get_full_path(),
-                data={
-                    "username": user.username,
-                    "contraseña": contrasenia,
-                },
-            )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
-        else:
-            custom_response_data = ERROR_MESSAGE(
-                tipo=type(int).__name__,
-                message="error",
-                url=request.get_full_path(),
-                fields_errors=result_serializer.errors,
-            )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
+        custom_response_data = SUCCESS_MESSAGE(
+            tipo=self.queryset.model.__name__,
+            message=self.queryset.model.__name__ + " creado",
+            url=request.get_full_path(),
+            data={
+                "username": user.username,
+                "password": password,
+            },
+        )
+        return Response(custom_response_data, status=status.HTTP_201_CREATED)
 
-    def update(self, request, *args, **kwargs):
-        result_serializer = AsistenteUpdateSerializer(data=request.data)
-        if result_serializer.is_valid():
-            with transaction.atomic():
-                instance = self.get_object()
-                instance.nombres = result_serializer.data["nombres"]
-                instance.apellidos = result_serializer.data["apellidos"]
-                instance.dni = result_serializer.data["dni"]
-                instance.celular = result_serializer.data["celular"]
-                instance.fechaNacimiento = result_serializer.data["fechaNacimiento"]
-                instance.updated_at = datetime.datetime.now()
-                instance.updated_by = self.request.user
-                instance.save()
+    @validar_serializer(serializer=AsistenteUpdateSerializer)
+    def update(self, request, data, *args, **kwargs):
+        with transaction.atomic():
+            instance = self.get_object()
+            instance.nombres = data[STRING(Asistente.nombres)]
+            instance.apellidos = data[STRING(Asistente.apellidos)]
+            instance.dni = data[STRING(Asistente.dni)]
+            instance.celular = data[STRING(Asistente.celular)]
+            instance.fechaNacimiento = data[STRING(Asistente.fechaNacimiento)]
+            instance.tipo = data[STRING(Asistente.tipo)]
+            instance.ubicacion_id = data["ubicacion_id"]
+            instance.updated_at = datetime.datetime.now()
+            instance.updated_by = self.request.user
+            instance.save()
 
-            custom_response_data = SECCUSSFULL_MESSAGE(
-                tipo=type(int).__name__,
-                message="Asistente Modificado",
-                url=request.get_full_path(),
-                data=instance.id,
-            )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
-        else:
-            custom_response_data = ERROR_MESSAGE(
-                tipo=type(int).__name__,
-                message="error",
-                url=request.get_full_path(),
-                fields_errors=result_serializer.errors,
-            )
-            return Response(custom_response_data, status=status.HTTP_201_CREATED)
+        custom_response_data = SUCCESS_MESSAGE(
+            tipo=self.queryset.model.__name__,
+            message=self.queryset.model.__name__ + " modificado",
+            url=request.get_full_path(),
+            data=instance.id,
+        )
+        return Response(custom_response_data, status=status.HTTP_200_OK)

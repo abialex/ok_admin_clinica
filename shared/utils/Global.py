@@ -1,9 +1,13 @@
 import traceback
 from enum import Enum
+from cita.choices import EstadoCita
+
 from shared.models import ErrorLog
 
 
 DIAS_TOKEN = 7
+
+
 class RolEnum(Enum):
     DEVELOPER = 0
     ADMINISTRADOR = 1
@@ -11,6 +15,13 @@ class RolEnum(Enum):
     DOCTOR = 4
     ASISTENTE = 5
     PACIENTE = 6
+
+
+class CitaEnum(Enum):
+    OCUPADA = 0
+    TENTATIVA = 1
+    AGIL = 3
+    COMPLETA = 4
 
 
 def ERROR_MESSAGE_LOG(name_file, message):
@@ -26,7 +37,7 @@ def ERROR_MESSAGE(tipo, message, url, fields_errors=None):
     }
 
 
-def SECCUSSFULL_MESSAGE(tipo, message, url, data):
+def SUCCESS_MESSAGE(tipo, message, url, data):
     return {
         "tipo": tipo,
         "message": message,
@@ -68,6 +79,16 @@ TABLA_ROL = {
     ],
 }
 
+EXCLUDE_ATTR = (
+    "created_at",
+    "updated_at",
+    "is_deleted",
+    "created_by",
+    "updated_by",
+    "notes",
+)
+
+
 def GET_ROL(user):
     for rol, funcionList in TABLA_ROL.items():
         # lambda user tiene el atributo rol
@@ -75,7 +96,52 @@ def GET_ROL(user):
             # lambda user devuelve el objeto rol
             return rol, funcionList[1](user)
 
-    return "Sin rol", user
+    return None, None
+
+
+# TABLA_TIPO_CITA = {
+#     CitaEnum.OCUPADA: [
+#         lambda cita: isinstance(cita, CitaOcupada),
+#         lambda cita: cita.razonOcupado,
+#     ],
+#     CitaEnum.TENTATIVA: [
+#         lambda cita: isinstance(cita, CitaTentativa),
+#         lambda cita: "Estado: "
+#         + next(
+#             filter(lambda miembro: miembro.value == cita.estado, EstadoCita),
+#             None,
+#         ).name,
+#     ],
+#     CitaEnum.AGIL: [
+#         lambda cita: isinstance(cita, CitaAgil),
+#         lambda cita: cita.datosPaciente,
+#     ],
+#     CitaEnum.COMPLETA: [
+#         lambda cita: isinstance(cita, CitaCompleta),
+#         lambda cita: cita.paciente.id,
+#     ],
+# }
+
+
+# def GET_TIPO_CITA(cita):
+#     for tipo, funcionList in TABLA_TIPO_CITA.items():
+#         # lambda user tiene el atributo rol
+#         if funcionList[0](cita):
+#             # lambda user devuelve el objeto rol
+#             return tipo  # , funcionList[1](cita)
+
+#     return "Sin rol"  # , cita
+
+
+def GET_ESTADO_CITA(estado):
+    return next(
+        filter(lambda miembro: miembro.value == estado, EstadoCita),
+        None,
+    ).name
+
+
+def STRING(atributo):
+    return atributo.field.attname
 
 
 def LOGGING_SAVE(exc, url):
