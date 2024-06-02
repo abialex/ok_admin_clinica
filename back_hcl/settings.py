@@ -65,7 +65,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "back_hcl.middleware.back_hcl_handler.Log500ErrorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
-    #'whitenoise.middleware.WhiteNoiseMiddleware'
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "back_hcl.urls"

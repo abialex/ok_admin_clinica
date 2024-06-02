@@ -5,3 +5,4 @@
 .vscode/launch.json
 __pycache__
 settings.json
+/static/
