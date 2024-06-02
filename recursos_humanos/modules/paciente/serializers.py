@@ -20,19 +20,37 @@ class PacienteUpdateSerializer(PersonaSerializer):
 
 # --- INICIO DEL BLOQUE: Paciente Response ---
 class PacienteResponseSerializer(serializers.ModelSerializer):
-    usuario = UserResponseSerializer()
+    usuario_id = serializers.SerializerMethodField()
+    usuario_username = serializers.SerializerMethodField()
 
     class Meta:
         model = Paciente
-        exclude = EXCLUDE_ATTR
+        exclude = ("usuario",) + EXCLUDE_ATTR
+
+    def get_usuario_id(self, instance: Paciente):
+        return instance.usuario.id
+
+    def get_usuario_username(self, instance: Paciente):
+        return instance.usuario.username
 
 
 class PacientesResponseSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="usuario.username", read_only=True)
+    usuario_username = serializers.SerializerMethodField()
 
     class Meta:
-        model = Asistente
-        fields = ("id", "usuario_id", "username", "nombres", "apellidos")
+        model = Paciente
+        fields = (
+            "id",
+            "usuario_id",
+            "usuario_username",
+            "nombres",
+            "apellidos",
+            "dni",
+            "celular",
+        )
+
+    def get_usuario_username(self, instance: Paciente):
+        return instance.usuario.username
 
 
 # --- FIN DEL BLOQUE ---

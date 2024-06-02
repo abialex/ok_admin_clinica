@@ -27,3 +27,14 @@ class TokenFirebase(models.Model):
 
 
 # ----------------------------------------------------------------------------------------------------------------
+
+
+class AccessToken(models.Model):
+    token = models.CharField(max_length=355)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    expiration_date = models.DateTimeField()
+    service = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=20, default="active")
+
+    def __str__(self):
+        return f"ID: {self.id}, {self.service}"

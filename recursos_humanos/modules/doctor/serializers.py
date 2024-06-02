@@ -11,7 +11,7 @@ from ubicacion.serializers import UbicacionsResponseSerializer
 # --- INICIO DEL BLOQUE: Doctor CRUDs ---
 class DoctorCreateSerializer(PersonaSerializer):
     especialidad = serializers.CharField(max_length=100, required=False)
-    ubicaciones = serializers.PrimaryKeyRelatedField(
+    ubicaciones_id = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Ubicacion.objects.filter(is_active=True)
     )
 
@@ -19,7 +19,7 @@ class DoctorCreateSerializer(PersonaSerializer):
 class DoctorUpdateSerializer(PersonaSerializer):
     id = serializers.IntegerField()
     especialidad = serializers.CharField(max_length=100, required=False)
-    ubicaciones = serializers.PrimaryKeyRelatedField(
+    ubicaciones_id = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Ubicacion.objects.filter(is_active=True), required=False
     )
 
@@ -29,12 +29,19 @@ class DoctorUpdateSerializer(PersonaSerializer):
 
 # --- INICIO DEL BLOQUE: Doctor Response ---
 class DoctorResponseSerializer(serializers.ModelSerializer):
-    usuario = UserResponseSerializer()
+    usuario_id = serializers.SerializerMethodField()
+    usuario_username = serializers.SerializerMethodField()
     ubicaciones = UbicacionsResponseSerializer(many=True)
 
     class Meta:
         model = Doctor
-        exclude = EXCLUDE_ATTR
+        exclude = ("usuario",) + EXCLUDE_ATTR
+
+    def get_usuario_id(self, instance: Doctor):
+        return instance.usuario.id
+
+    def get_usuario_username(self, instance: Doctor):
+        return instance.usuario.username
 
 
 class DoctorsResponseSerializer(serializers.ModelSerializer):
@@ -42,7 +49,16 @@ class DoctorsResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ("id", "usuario_id", "username", "nombres", "apellidos")
+        fields = (
+            "id",
+            "usuario_id",
+            "username",
+            "nombres",
+            "apellidos",
+            "is_active",
+            "fechaNacimiento",
+            "celular",
+        )
 
 
 # --- FIN DEL BLOQUE ---

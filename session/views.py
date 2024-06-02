@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.authtoken.models import Token
 
+from recursos_humanos.choices import TipoAsistente
 from recursos_humanos.serializers import PersonaSerializer
 
 # from core.models import UserRol, UserSede
@@ -22,6 +23,7 @@ from shared.utils.Global import (
     SUCCESS_MESSAGE,
     ERROR_MESSAGE,
     STRING,
+    RolEnum,
 )
 from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -54,7 +56,7 @@ class UserViewSet(BaseModelViewSet):
         serializer = UsersSerializer(instance)
         custom_response_data = SUCCESS_MESSAGE(
             tipo=type(int).__name__,
-            message="historia clinica",
+            message="Usuario by-id",
             url=request.get_full_path(),
             data=serializer.data,
         )
@@ -69,19 +71,19 @@ class UserViewSet(BaseModelViewSet):
                     username=result_serializer.data["username"],
                 )
 
-                doctor = Doctor(
-                    nombres=result_serializer.data["nombres"],
-                    apellidos=result_serializer.data["apellidos"],
-                    dni=result_serializer.data["dni"],
-                    celular=result_serializer.data["celular"],
-                    fechaNacimiento=result_serializer.data["fechaNacimiento"],
-                    usuario_id=user.id,
-                )
-                doctor.save()
+                # doctor = Doctor(
+                #     nombres=result_serializer.data["nombres"],
+                #     apellidos=result_serializer.data["apellidos"],
+                #     dni=result_serializer.data["dni"],
+                #     celular=result_serializer.data["celular"],
+                #     fechaNacimiento=result_serializer.data["fechaNacimiento"],
+                #     usuario_id=user.id,
+                # )
+                # doctor.save()
 
             custom_response_data = SUCCESS_MESSAGE(
                 tipo=type(int).__name__,
-                message="historia clinica creada",
+                message="usuario creado",
                 url=request.get_full_path(),
                 data=user.id,
             )
@@ -101,7 +103,7 @@ class UserViewSet(BaseModelViewSet):
         response = super().update(request, *args, **kwargs)
         custom_response_data = SUCCESS_MESSAGE(
             tipo=type(int).__name__,
-            message="historia clinica modificada",
+            message="sin funcionalidad",
             url=request.get_full_path(),
             data=response.data[STRING(User.id)],
         )
@@ -134,15 +136,20 @@ class AuthTokenLogin(ObtainAuthToken):
                 diasToken = DIAS_TOKEN
             rol, persona = GET_ROL(user)
             if persona is None:
-                return Response(
-                    data=ERROR_MESSAGE(
-                        tipo="User",
-                        message="No tien un ROL asignado",
+                if user.username == "slg_main":
+                    response = SUCCESS_MESSAGE(
+                        tipo=type(user).__name__,
+                        message="Login",
                         url=request.get_full_path(),
-                        fields_errors={},
-                    ),
-                    status=400,
-                )
+                        data={
+                            "username": user.username,
+                            "user_id": user.pk,
+                            "token": "token " + token.key,
+                            "is_new_token": created,
+                            "dias_token": diasToken,
+                        },
+                    )
+                    return Response(response)
             response = SUCCESS_MESSAGE(
                 tipo=type(user).__name__,
                 message="Login",
@@ -155,6 +162,12 @@ class AuthTokenLogin(ObtainAuthToken):
                     "is_new_token": created,
                     "rol": rol.name,
                     "dias_token": diasToken,
+                    "tipo": (
+                        TipoAsistente(persona.tipo).label
+                        if hasattr(persona, "tipo")
+                        else None
+                    ),
+                    "ubicaciones": getUbicacionesByRol(rol=rol, persona=persona),
                 },
             )
             return Response(response)
@@ -222,3 +235,18 @@ def login_authenticated(request):
             ),
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+def getUbicacionesByRol(persona, rol: RolEnum):
+    if rol == RolEnum.DEVELOPER:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.ADMINISTRADOR:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.SUPERDOCTOR:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.ASISTENTE:
+        return [persona.ubicacion_id]
+    elif rol == RolEnum.DOCTOR:
+        return persona.ubicaciones.values_list("id", flat=True)
+    elif rol == RolEnum.PACIENTE:
+        return [persona.ubicacion_id]

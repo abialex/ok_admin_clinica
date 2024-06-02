@@ -3,4 +3,4 @@ from session.views import UserViewSet
 
 router = DefaultRouter()
 
-router.register(r'user', UserViewSet, basename="user")
+router.register(r"user", UserViewSet, basename="user")

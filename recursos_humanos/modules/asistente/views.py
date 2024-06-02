@@ -9,6 +9,7 @@ from recursos_humanos.modules.asistente.serializers import (
     AsistenteUpdateSerializer,
     AsistentesResponseSerializer,
 )
+from recursos_humanos.views import assignUsername
 from session.models import User
 from shared.utils.Global import ERROR_MESSAGE, SUCCESS_MESSAGE, STRING
 from rest_framework import status
@@ -51,13 +52,13 @@ class AsistenteViewSet(BaseModelViewSet):
     @validar_serializer(serializer=AsistenteCreateSerializer)
     def create(self, request, data, *args, **kwargs):
         with transaction.atomic():
-            username = "slg_a_" + data[STRING(Asistente.dni)][:2]
-            contrasenia = data[STRING(Asistente.dni)]
+            username = assignUsername(dni=data[STRING(Doctor.dni)], prefix="slg_a_")
+            password = data[STRING(Asistente.dni)]
             if User.objects.filter(username=username).__len__() > 0:
                 raise IntegrityError("Este username ya existe.")
             user = User.objects.create(
                 username=username,
-                password=make_password(contrasenia),
+                password=make_password(password),
             )
             asistente = Asistente(
                 nombres=data[STRING(Asistente.nombres)],
@@ -66,6 +67,7 @@ class AsistenteViewSet(BaseModelViewSet):
                 celular=data[STRING(Asistente.celular)],
                 fechaNacimiento=data[STRING(Asistente.fechaNacimiento)],
                 ubicacion_id=data[STRING(Asistente.ubicacion)],
+                tipo=data[STRING(Asistente.tipo)],
                 usuario_id=user.id,
             )
             asistente.created_by = self.request.user
@@ -77,7 +79,7 @@ class AsistenteViewSet(BaseModelViewSet):
             url=request.get_full_path(),
             data={
                 "username": user.username,
-                "contraseña": contrasenia,
+                "password": password,
             },
         )
         return Response(custom_response_data, status=status.HTTP_201_CREATED)
@@ -91,6 +93,8 @@ class AsistenteViewSet(BaseModelViewSet):
             instance.dni = data[STRING(Asistente.dni)]
             instance.celular = data[STRING(Asistente.celular)]
             instance.fechaNacimiento = data[STRING(Asistente.fechaNacimiento)]
+            instance.tipo = data[STRING(Asistente.tipo)]
+            instance.ubicacion_id = data["ubicacion_id"]
             instance.updated_at = datetime.datetime.now()
             instance.updated_by = self.request.user
             instance.save()
