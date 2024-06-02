@@ -78,13 +78,13 @@ class CitaOcupadoUpdateSerializer(CitaSerializer):
 class CitaByFechaIdUbicacionIdDoctorSerializer(serializers.Serializer):
     fechaHoraCita = serializers.DateField()
     doctor_id = serializers.PrimaryKeyRelatedField(
-        queryset=Doctor.objects.filter(is_active=True),
+        queryset=Doctor.objects.filter(is_deleted=False),
         source="doctor",
         required=True,
     )
     ubicaciones_id = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=Ubicacion.objects.filter(is_active=True),
+        queryset=Ubicacion.objects.filter(is_deleted=False),
         required=False,
     )
 

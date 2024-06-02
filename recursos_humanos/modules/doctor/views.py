@@ -215,3 +215,78 @@ def doctor_inactivar(request):
         ),
         status=status.HTTP_200_OK,
     )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def reset_password(request):
+    doctor_id = request.GET.get("id")
+    doctores = Doctor.objects.filter(id=doctor_id)
+    if doctores.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=doctores.model.__name__,
+                message="El doctor no se encontró",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "doctor activo no existe"},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    doctor = doctores[0]
+    user = User.objects.get(id=doctor.usuario_id)
+    user.password = make_password(doctor.dni)
+    user.save()
+    # base
+    doctor.updated_by = request.user
+    doctor.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type("").__name__,
+            message="Password reiniciado",
+            url=request.get_full_path(),
+            data="Su contraseña se ha cambiado a " + doctor.dni,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def doctor_get_by_user_doctor(request):
+    rol, personaDoctor = GET_ROL(request.user)
+    if rol != RolEnum.DOCTOR:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=type(int).__name__,
+                message="Doctores por Ubicacion",
+                url=request.get_full_path(),
+                fields_errors="Esta persona no tiene acceso",
+            ),
+            status=status.HTTP_200_OK,
+        )
+
+    doctores = Doctor.objects.filter(is_deleted=False, id=personaDoctor.id)
+    if doctores.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=doctores.model.__name__,
+                message="El doctor no se encontró",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "doctor activo no existe"},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    serializer = DoctorsResponseSerializer(doctores, many=True)
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(int).__name__,
+            message="Doctores por Ubicacion",
+            url=request.get_full_path(),
+            data=serializer.data,
+        ),
+        status=status.HTTP_200_OK,
+    )

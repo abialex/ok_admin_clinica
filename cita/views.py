@@ -44,7 +44,7 @@ def cita_by_fecha_iddoctor_idubicacion(request, data):
             fechaHoraCita__date=fechaHoraCita,
             doctor_id=doctor_id,
         )
-        .filter(Q(ubicacion_id__in=ubicaciones_id) | Q(ubicacion=None))
+        .filter()
         .exclude(is_deleted=True)
         .order_by("fechaHoraCita")
     )
