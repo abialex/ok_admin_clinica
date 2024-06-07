@@ -6,6 +6,7 @@ from rest_framework.routers import DefaultRouter
 from cita.views import (
     CitaViewSet,
     cita_by_fecha_iddoctor_idubicacion,
+    cita_cancelar,
     cita_confirmar,
     cita_finalizar,
     cita_iniciar,
@@ -32,6 +33,7 @@ urlpatterns = [
     path("cita_iniciar/by-id", cita_iniciar),
     path("cita_finalizar/by-id", cita_finalizar),
     path("cita_validar/by-id", cita_validar),
+    path("cita_cancelar/by-id", cita_cancelar),
     # path(
     #     "citas_completas/",
     #     include("cita.modules.cita_completa.urls", namespace="completa"),

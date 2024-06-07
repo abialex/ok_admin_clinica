@@ -316,6 +316,44 @@ def cita_validar(request):
 @api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+def cita_cancelar(request):
+    cita_id = request.GET.get("id")
+    citas = Cita.objects.filter(
+        id=cita_id,
+        is_deleted=False,
+        estado__in=[EstadoCita.PENDIENTE],
+    )
+    if citas.__len__() == 0:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=citas.model.__name__,
+                message="La cita pendiente no se ha encontrado",
+                url=request.get_full_path(),
+                fields_errors={"DoesNotExist": "id de la cita no existe"},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    cita = citas[0]
+    cita.estado = EstadoCita.CANCELADO
+    cita.fechaValidacion = datetime.datetime.now()
+    # base
+    cita.updated_by = request.user
+    cita.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(cita).__name__,
+            message="Cita cancelada",
+            url=request.get_full_path(),
+            data=True,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def cita_list_filter(request):
     doctor_id = request.query_params.get("doctor_id")
     tipo = request.query_params.get("tipo")
