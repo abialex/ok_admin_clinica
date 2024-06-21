@@ -11,7 +11,8 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.authtoken.models import Token
 
-from recursos_humanos.choices import TipoAsistente
+from recursos_humanos.choices import TipoAsistente, TipoDoctor
+from recursos_humanos.models import Asistente
 from recursos_humanos.serializers import PersonaSerializer
 
 # from core.models import UserRol, UserSede
@@ -150,6 +151,16 @@ class AuthTokenLogin(ObtainAuthToken):
                         },
                     )
                     return Response(response)
+
+            # handler sub roles de roles
+            if hasattr(persona, "tipo"):
+                if type(persona) is Asistente:
+                    tipo_label = TipoAsistente(persona.tipo).label
+                elif type(persona) is Doctor:
+                    tipo_label = TipoDoctor(persona.tipo).label
+            else:
+                tipo_label = None
+
             response = SUCCESS_MESSAGE(
                 tipo=type(user).__name__,
                 message="Login",
@@ -162,11 +173,7 @@ class AuthTokenLogin(ObtainAuthToken):
                     "is_new_token": created,
                     "rol": rol.name,
                     "dias_token": diasToken,
-                    "tipo": (
-                        TipoAsistente(persona.tipo).label
-                        if hasattr(persona, "tipo")
-                        else None
-                    ),
+                    "tipo": tipo_label,
                     "ubicaciones": getUbicacionesByRol(rol=rol, persona=persona),
                 },
             )
