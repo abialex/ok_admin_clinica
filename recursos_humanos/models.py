@@ -1,6 +1,6 @@
 from back_hcl import settings
 from django.db import models
-from recursos_humanos.choices import TipoAsistente, TipoDoctor
+from recursos_humanos.choices import TipoAdministrador, TipoAsistente, TipoDoctor
 from shared.utils.baseModel import BaseModel
 from ubicacion.models import Ubicacion
 
@@ -39,4 +39,9 @@ class Asistente(Persona):
 class Paciente(Persona):
     historial_medico = models.CharField(max_length=50, null=True, blank=True)
 
+
+class Administrador(Persona):
+    tipo = models.IntegerField(
+        choices=TipoAdministrador.choices, default=TipoAdministrador.ASISTENTE
+    )
     # Otros campos específicos de pacientes
