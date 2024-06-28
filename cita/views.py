@@ -13,6 +13,7 @@ from cita.serializers import (
     CitaOcupadoUpdateSerializer,
     CitaResponseSerializer,
     CitaSerializer,
+    CitaSerializerByDateLocationDoctor,
     CitasResponseSerializer,
 )
 from shared.utils.Global import ERROR_MESSAGE, SUCCESS_MESSAGE, STRING
@@ -404,6 +405,43 @@ def cita_list_filter(request):
         SUCCESS_MESSAGE(
             tipo=type(citas).__name__,
             message="Citas " + filter,
+            url=request.get_full_path(),
+            data=serializer.data,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@validar_serializer(serializer=CitaSerializerByDateLocationDoctor)
+def cita_by_date_location_doctor(request, data):
+    # por doctor o todos los doctores
+    # fecha inicio-fecha fin, o una sola fecha
+    #
+    fecha = request.data.get("fecha")
+    fechaInicio = request.data.get("fecha_inicio")
+    fechaFin = request.data.get("fecha_fin")
+    ubicacion_id = request.data.get("ubicacion_id")
+    doctor_id = request.data.get("doctor_id")
+
+    kwargs = {}
+    if ubicacion_id:
+        kwargs["ubicacion_id"] = ubicacion_id
+    if doctor_id:
+        kwargs["doctor_id"] = doctor_id
+    if fecha:
+        kwargs["fechaHoraCita__date"] = fecha
+    elif fechaInicio and fechaFin:
+        kwargs["fechaHoraCita__range"] = [fechaInicio, fechaFin]
+
+    citas = Cita.objects.filter(**kwargs)
+    serializer = CitaResponseSerializer(citas, many=True)
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(citas).__name__,
+            message="Citas filter by date, location and doctor",
             url=request.get_full_path(),
             data=serializer.data,
         ),

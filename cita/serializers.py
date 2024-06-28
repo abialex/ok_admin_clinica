@@ -89,6 +89,23 @@ class CitaByFechaIdUbicacionIdDoctorSerializer(serializers.Serializer):
     )
 
 
+class CitaSerializerByDateLocationDoctor(serializers.Serializer):
+    fecha_inicio = serializers.DateField(allow_null=True, required=False)
+    fecha_fin = serializers.DateField(allow_null=True, required=False)
+    fecha = serializers.DateField(allow_null=True, required=False)
+
+    doctor_id = serializers.PrimaryKeyRelatedField(
+        queryset=Doctor.objects.filter(is_deleted=False),
+        source="doctor",
+        allow_null=True,
+        required=False,
+    )
+    ubicacion_id = serializers.PrimaryKeyRelatedField(
+        queryset=Ubicacion.objects.filter(is_deleted=False),
+        required=True,
+    )
+
+
 # # # --- INICIO DEL BLOQUE: Cita Response ---
 class CitaResponseSerializer(serializers.ModelSerializer):
     doctor_id = serializers.SerializerMethodField()
