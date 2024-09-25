@@ -92,7 +92,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("django.log"),
+        logging.FileHandler("/var/log/django.log"),
         logging.StreamHandler(),
     ],
 )
