@@ -11,6 +11,9 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'back_hcl.settings')
+from services_external.modules.firebase.utils.firebase_config import Firebase
 
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back_hcl.settings")
+Firebase.init()
 application = get_wsgi_application()

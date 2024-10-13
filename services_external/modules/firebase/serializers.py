@@ -17,3 +17,10 @@ class TokenFirebaseSerializer(serializers.Serializer):
         if TokenFirebase.objects.filter(token_fcm=value).exists():
             raise ValidationError("El token FCM ya existe.")
         return value
+
+
+class NotificationSerializer(serializers.Serializer):
+    rol = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    title = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    body = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    data = serializers.JSONField(required=False, allow_null=True)

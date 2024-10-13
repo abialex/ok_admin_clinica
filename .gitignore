@@ -6,3 +6,5 @@ __pycache__
 settings.json
 /static/
 /.venv/
+var/log/django.log
+serviceAccountKey.json
