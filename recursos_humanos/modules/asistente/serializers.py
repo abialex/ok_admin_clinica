@@ -3,7 +3,7 @@ from rest_framework import serializers
 from recursos_humanos.choices import TipoAsistente
 from recursos_humanos.models import Asistente
 from recursos_humanos.serializers import PersonaSerializer
-from session.serializers import UserResponseSerializer
+from session.serializers import UserResponseSerializer, UsersSerializer
 from shared.utils.Global import EXCLUDE_ATTR
 from ubicacion.models import Ubicacion
 from ubicacion.serializers import UbicacionsResponseSerializer
@@ -36,10 +36,11 @@ class AsistenteResponseSerializer(serializers.ModelSerializer):
     usuario_id = serializers.SerializerMethodField()
     usuario_username = serializers.SerializerMethodField()
     ubicacion = UbicacionsResponseSerializer()
+    usuario = UsersSerializer()
 
     class Meta:
         model = Asistente
-        exclude = ("usuario",) + EXCLUDE_ATTR
+        exclude = EXCLUDE_ATTR
 
     def get_usuario_id(self, instance: Asistente):
         return instance.usuario.id

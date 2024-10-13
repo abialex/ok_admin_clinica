@@ -7,26 +7,29 @@ from session.models import User
 
 
 class UserResponsiveSerializer(serializers.ModelSerializer):
-    persona = serializers.CharField(read_only=True, source="persona.get_nombre_completo")
+    persona = serializers.CharField(
+        read_only=True, source="persona.get_nombre_completo"
+    )
     sessionKey = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()
     sedes = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', "persona", "sessionKey", "sedes", "roles")
+        fields = ("id", "username", "persona", "sessionKey", "sedes", "roles")
 
     def get_sessionKey(self, obj):
-        extra_data = self.context.get('extra_data', {})
-        return extra_data.get('sessionKey', None)
+        extra_data = self.context.get("extra_data", {})
+        return extra_data.get("sessionKey", None)
 
     def get_sedes(self, obj):
-        extra_data = self.context.get('extra_data', {})
-        return extra_data.get('sedes', None)
+        extra_data = self.context.get("extra_data", {})
+        return extra_data.get("sedes", None)
 
     def get_roles(self, obj):
-        extra_data = self.context.get('extra_data', {})
-        return extra_data.get('roles', None)
+        extra_data = self.context.get("extra_data", {})
+        return extra_data.get("roles", None)
+
 
 # --- INICIO DEL BLOQUE: **** ---
 class UserResponseSerializer(serializers.ModelSerializer):
@@ -44,10 +47,22 @@ class UserFormSerializer(serializers.Serializer):
     domicilio = serializers.CharField(max_length=150, required=False)
     fechaNacimiento = serializers.CharField(max_length=12)
 
+
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        exclude = (
+            "password",
+            "is_superuser",
+            "first_name",
+            "last_name",
+            "email",
+            "is_staff",
+            "groups",
+            "user_permissions",
+        )
+
+
 # --- FIN DEL BLOQUE ---
 
 

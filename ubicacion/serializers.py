@@ -3,6 +3,7 @@ from cita.choices import EstadoCita
 
 from recursos_humanos.models import Asistente, Paciente, Persona, Doctor
 from session.serializers import UserResponseSerializer
+from shared.utils.Global import EXCLUDE_ATTR
 from ubicacion.models import Ubicacion
 
 
@@ -54,7 +55,7 @@ class UbicacionsResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ubicacion
-        fields = ("id", "nombre")
+        exclude = EXCLUDE_ATTR
 
 
 # --- FIN DEL BLOQUE ---
