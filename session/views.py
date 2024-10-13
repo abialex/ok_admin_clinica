@@ -11,8 +11,8 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.authtoken.models import Token
 
-from recursos_humanos.choices import TipoAsistente, TipoDoctor
-from recursos_humanos.models import Asistente
+from recursos_humanos.choices import TipoAdministrador, TipoAsistente, TipoDoctor
+from recursos_humanos.models import Administrador, Asistente
 from recursos_humanos.serializers import PersonaSerializer
 
 # from core.models import UserRol, UserSede
@@ -158,6 +158,8 @@ class AuthTokenLogin(ObtainAuthToken):
                     tipo_label = TipoAsistente(persona.tipo).label
                 elif type(persona) is Doctor:
                     tipo_label = TipoDoctor(persona.tipo).label
+                elif type(persona) is Administrador:
+                    tipo_label = TipoAdministrador(persona.tipo).label
             else:
                 tipo_label = None
 
@@ -248,7 +250,7 @@ def getUbicacionesByRol(persona, rol: RolEnum):
     if rol == RolEnum.DEVELOPER:
         return persona.ubicaciones.values_list("id", flat=True)
     elif rol == RolEnum.ADMINISTRADOR:
-        return persona.ubicaciones.values_list("id", flat=True)
+        return []
     elif rol == RolEnum.SUPERDOCTOR:
         return persona.ubicaciones.values_list("id", flat=True)
     elif rol == RolEnum.ASISTENTE:

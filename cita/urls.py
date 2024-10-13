@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 
 from cita.views import (
     CitaViewSet,
+    cita_by_date_location_doctor,
     cita_by_fecha_iddoctor_idubicacion,
     cita_cancelar,
     cita_confirmar,
@@ -48,5 +49,6 @@ urlpatterns = [
     # ),
     path(r"citas-by-fecha-iddoctor-idubicacion", cita_by_fecha_iddoctor_idubicacion),
     path(r"citas-list-filter-by-iddoctor/", cita_list_filter),
+    path(r"cita_by_date_location_doctor/", cita_by_date_location_doctor),
 ]
 urlpatterns += router.urls

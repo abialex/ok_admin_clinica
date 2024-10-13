@@ -9,3 +9,8 @@ class TipoAsistente(models.IntegerChoices):
 class TipoDoctor(models.IntegerChoices):
     DOCTOR = 1, "Doctor"
     ADMINISTRADOR = 2, "Administrador"
+
+
+class TipoAdministrador(models.IntegerChoices):
+    ASISTENTE = 1, "Asistente"
+    ADMINISTRADOR = 2, "Administrador"

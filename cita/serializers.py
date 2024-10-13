@@ -89,6 +89,23 @@ class CitaByFechaIdUbicacionIdDoctorSerializer(serializers.Serializer):
     )
 
 
+class CitaSerializerByDateLocationDoctor(serializers.Serializer):
+    fecha_inicio = serializers.DateField(allow_null=True, required=False)
+    fecha_fin = serializers.DateField(allow_null=True, required=False)
+    fecha = serializers.DateField(allow_null=True, required=False)
+
+    doctor_id = serializers.PrimaryKeyRelatedField(
+        queryset=Doctor.objects.filter(is_deleted=False),
+        source="doctor",
+        allow_null=True,
+        required=False,
+    )
+    ubicacion_id = serializers.PrimaryKeyRelatedField(
+        queryset=Ubicacion.objects.filter(is_deleted=False),
+        required=True,
+    )
+
+
 # # # --- INICIO DEL BLOQUE: Cita Response ---
 class CitaResponseSerializer(serializers.ModelSerializer):
     doctor_id = serializers.SerializerMethodField()
@@ -129,21 +146,31 @@ class CitaResponseSerializer(serializers.ModelSerializer):
 class CitasResponseSerializer(serializers.ModelSerializer):
     # doctor_id = serializers.SerializerMethodField()
     # doctor = serializers.SerializerMethodField()
-    # ubicacion_id = serializers.SerializerMethodField()
-    # ubicacion = serializers.SerializerMethodField()
+    ubicacion_id = serializers.SerializerMethodField()
+    ubicacion = serializers.SerializerMethodField()
     estado_string = serializers.SerializerMethodField()
     tipo_string = serializers.SerializerMethodField()
     paciente = PacientesResponseSerializer()
 
     class Meta:
         model = Cita
-        exclude = ("doctor", "ubicacion") + EXCLUDE_ATTR
+        exclude = ("doctor",) + EXCLUDE_ATTR
 
     def get_estado_string(self, instance: Cita):
         return EstadoCita(instance.estado).label
 
     def get_tipo_string(self, instance: Cita):
         return TipoCita(instance.tipo).label
+
+    def get_ubicacion_id(self, instance: Cita):
+        if instance.ubicacion == None:
+            return None
+        return instance.ubicacion.id
+
+    def get_ubicacion(self, instance: Cita):
+        if instance.ubicacion == None:
+            return None
+        return instance.ubicacion.nombre
 
 
 # # # --- FIN DEL BLOQUE ---
