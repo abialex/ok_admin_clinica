@@ -68,3 +68,8 @@ class UsersSerializer(serializers.ModelSerializer):
 
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=120, required=True)
+
+
+class UpdatePasswordSerializer(serializers.Serializer):
+    password1 = serializers.CharField(max_length=100)
+    password2 = serializers.CharField(max_length=100)

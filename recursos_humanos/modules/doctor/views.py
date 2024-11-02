@@ -30,7 +30,7 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.authtoken.models import Token
 from shared.utils.decoradores import validar_serializer
 
 
@@ -235,12 +235,16 @@ def reset_password(request):
         )
     doctor = doctores[0]
     user = User.objects.get(id=doctor.usuario_id)
+    user.isNewPassword = True
     user.password = make_password(doctor.dni)
     user.save()
     # base
     doctor.updated_by = request.user
     doctor.save()
 
+    token = Token.objects.filter(user=user)
+    if token.__len__() != 0:
+        token[0].delete()
     return Response(
         SUCCESS_MESSAGE(
             tipo=type("").__name__,
