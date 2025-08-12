@@ -30,7 +30,7 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.authtoken.models import Token
 from shared.utils.decoradores import validar_serializer
 
 
@@ -133,7 +133,7 @@ def doctor_get_by_ubicacion(request):
                 url=request.get_full_path(),
                 fields_errors="Esta persona no tiene acceso",
             ),
-            status=status.HTTP_200_OK,
+            status=status.HTTP_404_NOT_FOUND,
         )
 
     doctores = Doctor.objects.filter(
@@ -235,12 +235,16 @@ def reset_password(request):
         )
     doctor = doctores[0]
     user = User.objects.get(id=doctor.usuario_id)
+    user.isNewPassword = True
     user.password = make_password(doctor.dni)
     user.save()
     # base
     doctor.updated_by = request.user
     doctor.save()
 
+    token = Token.objects.filter(user=user)
+    if token.__len__() != 0:
+        token[0].delete()
     return Response(
         SUCCESS_MESSAGE(
             tipo=type("").__name__,
@@ -265,7 +269,7 @@ def doctor_get_by_user_doctor(request):
                 url=request.get_full_path(),
                 fields_errors="Esta persona no tiene acceso",
             ),
-            status=status.HTTP_200_OK,
+            status=status.HTTP_404_NOT_FOUND,
         )
 
     doctores = Doctor.objects.filter(is_deleted=False, id=personaDoctor.id)
@@ -280,6 +284,24 @@ def doctor_get_by_user_doctor(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    serializer = DoctorsResponseSerializer(doctores, many=True)
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type(int).__name__,
+            message="Doctores por Ubicacion",
+            url=request.get_full_path(),
+            data=serializer.data,
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def list_by_ubicacion_id(request):
+    ubicacion_id = request.GET.get("ubicacion_id")
+    doctores = Doctor.objects.filter(is_deleted=False, ubicaciones=ubicacion_id)
     serializer = DoctorsResponseSerializer(doctores, many=True)
     return Response(
         SUCCESS_MESSAGE(

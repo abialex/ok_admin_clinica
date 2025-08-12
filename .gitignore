@@ -1,7 +1,10 @@
-**/migrations/00*
 /django.log
 /db.sqlite3
 /imagenes/
 .vscode/launch.json
 __pycache__
 settings.json
+/static/
+/.venv/
+var/log/django.log
+serviceAccountKey.json

@@ -65,7 +65,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "back_hcl.middleware.back_hcl_handler.Log500ErrorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
-    #'whitenoise.middleware.WhiteNoiseMiddleware'
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "back_hcl.urls"
@@ -92,7 +92,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("django.log"),
+        logging.FileHandler("/var/log/django.log"),
         logging.StreamHandler(),
     ],
 )
@@ -134,7 +134,7 @@ LANGUAGE_CODE = "es-ES"
 
 TIME_ZONE = "America/Lima"
 
-USE_I18N = False
+USE_I18N = True
 
 USE_TZ = False
 

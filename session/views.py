@@ -11,8 +11,14 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.authtoken.models import Token
 
-from recursos_humanos.choices import TipoAsistente
+from recursos_humanos.choices import TipoAdministrador, TipoAsistente, TipoDoctor
+from recursos_humanos.models import Administrador, Asistente
 from recursos_humanos.serializers import PersonaSerializer
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
 
 # from core.models import UserRol, UserSede
 # from core.serializers import UserRolSerializer, UserSedeSerializer
@@ -29,6 +35,9 @@ from shared.utils.baseModel import BaseModelViewSet
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+
+from shared.utils.decoradores import validar_serializer
+from django.contrib.auth.hashers import make_password
 
 # from Utils import create_response_succes, create_response_error
 
@@ -150,6 +159,18 @@ class AuthTokenLogin(ObtainAuthToken):
                         },
                     )
                     return Response(response)
+
+            # handler sub roles de roles
+            if hasattr(persona, "tipo"):
+                if type(persona) is Asistente:
+                    tipo_label = TipoAsistente(persona.tipo).label
+                elif type(persona) is Doctor:
+                    tipo_label = TipoDoctor(persona.tipo).label
+                elif type(persona) is Administrador:
+                    tipo_label = TipoAdministrador(persona.tipo).label
+            else:
+                tipo_label = None
+
             response = SUCCESS_MESSAGE(
                 tipo=type(user).__name__,
                 message="Login",
@@ -162,11 +183,8 @@ class AuthTokenLogin(ObtainAuthToken):
                     "is_new_token": created,
                     "rol": rol.name,
                     "dias_token": diasToken,
-                    "tipo": (
-                        TipoAsistente(persona.tipo).label
-                        if hasattr(persona, "tipo")
-                        else None
-                    ),
+                    "tipo": tipo_label,
+                    "isNewPassword": user.isNewPassword,
                     "ubicaciones": getUbicacionesByRol(rol=rol, persona=persona),
                 },
             )
@@ -237,11 +255,45 @@ def login_authenticated(request):
         )
 
 
+@api_view(["POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@validar_serializer(serializer=UpdatePasswordSerializer)
+def update_password(request, data):
+    password1 = request.data["password1"]
+    password2 = request.data["password2"]
+    if password1 != password2:
+        return Response(
+            ERROR_MESSAGE(
+                tipo=type("").__name__,
+                message="Las contraseñas no coinciden",
+                url=request.get_full_path(),
+                fields_errors={},
+            ),
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = User.objects.get(id=request.user.pk)
+    user.isNewPassword = False
+    user.password = make_password(password2)
+    user.save()
+
+    return Response(
+        SUCCESS_MESSAGE(
+            tipo=type("").__name__,
+            message="Contraseña Actualizada",
+            url=request.get_full_path(),
+            data="Si lo olvida solicite a recepción para reiniciarlo",
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
 def getUbicacionesByRol(persona, rol: RolEnum):
     if rol == RolEnum.DEVELOPER:
         return persona.ubicaciones.values_list("id", flat=True)
     elif rol == RolEnum.ADMINISTRADOR:
-        return persona.ubicaciones.values_list("id", flat=True)
+        return []
     elif rol == RolEnum.SUPERDOCTOR:
         return persona.ubicaciones.values_list("id", flat=True)
     elif rol == RolEnum.ASISTENTE:

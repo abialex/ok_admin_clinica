@@ -6,6 +6,7 @@ from recursos_humanos.modules.doctor.views import (
     doctor_get_by_ubicacion,
     doctor_get_by_user_doctor,
     doctor_inactivar,
+    list_by_ubicacion_id,
     reset_password,
 )
 
@@ -20,6 +21,7 @@ urlpatterns = [
     path("doctor-inactivar/by-id", doctor_inactivar),
     path("reset-password/by-id", reset_password),
     path("by-doctor_user", doctor_get_by_user_doctor),
+    path(r"list/by-ubicacion-id", list_by_ubicacion_id),
 ]
 
 urlpatterns += router.urls
